@@ -26,8 +26,11 @@ public class MemoService {
         memo.setId(id);
         memo.setText(text);
 
+        long ttl = Duration.ofHours(24).getSeconds();
+        memo.setTtl(ttl);
+
         String memoJson = objectMapper.writeValueAsString(memo);
-        redisTemplate.opsForValue().set(id, memoJson, Duration.ofHours(24));
+        redisTemplate.opsForValue().set(id, memoJson, Duration.ofSeconds(ttl));
 
         return memo;
     }

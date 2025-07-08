@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/memos")
+@RequestMapping("/api/notes")
 public class MemoController {
 
     private final MemoService memoService;
