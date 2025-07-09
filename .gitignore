@@ -25,3 +25,6 @@ replay_pid*
 
 # .terraform 폴더 ( 용량너무큼)
 .terraform/
+# terraform 관련 민감정보
+*.tfstate
+*.tfvars
