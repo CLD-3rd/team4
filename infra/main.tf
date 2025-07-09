@@ -42,7 +42,7 @@ module "s3" {
   source      = "./modules/s3"
   bucket_name = var.bucket_name
   environment = var.environment
-  project_name = var.project # project_name 에서 변수명 통일 - 김재신
+  project = var.project # project_name 에서 변수명 통일 - 김재신
 }
 
 # RDS
