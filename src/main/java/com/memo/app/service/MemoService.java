@@ -30,7 +30,7 @@ public class MemoService {
         	memo.setImageUrl(imageUrl);
         }
 
-        long ttl = Duration.ofHours(24).getSeconds();
+        long ttl = Duration.ofSeconds(10).getSeconds();
         memo.setTtl(ttl);
 
         String memoJson = objectMapper.writeValueAsString(memo);
