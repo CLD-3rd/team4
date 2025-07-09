@@ -49,22 +49,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-		  <groupId>software.amazon.awssdk</groupId>
-		  <artifactId>s3</artifactId>
-		  <version>2.25.2</version> <!-- 또는 최신 버전 -->
-		</dependency>
-		<dependency>
-		  <groupId>software.amazon.awssdk</groupId>
-		  <artifactId>auth</artifactId>
-		  <version>2.25.2</version>
-		</dependency>
-		
-		<dependency>
-		  <groupId>software.amazon.awssdk</groupId>
-		  <artifactId>regions</artifactId>
-		  <version>2.25.2</version>
-		</dependency>
 	</dependencies>
 
 	<build>

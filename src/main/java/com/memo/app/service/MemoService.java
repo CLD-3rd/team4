@@ -20,11 +20,15 @@ public class MemoService {
         this.objectMapper = objectMapper;
     }
 
-    public Memo createMemo(String text) throws IOException {
+    public Memo createMemo(String text, String imageUrl) throws IOException {
         String id = UUID.randomUUID().toString();
         Memo memo = new Memo();
         memo.setId(id);
         memo.setText(text);
+        
+        if (imageUrl != null) {
+        	memo.setImageUrl(imageUrl);
+        }
 
         long ttl = Duration.ofHours(24).getSeconds();
         memo.setTtl(ttl);

@@ -7,4 +7,5 @@ public class Memo {
     private String id;
     private String text;
     private long ttl;
+    private String imageUrl;
 }
