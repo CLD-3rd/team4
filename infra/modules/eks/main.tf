@@ -1,6 +1,7 @@
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
-  version         = "20.8.4"
+   version         = "20.37.1"
+#  version         = "20.8.4" # 구버전 호환 문제로 최신 latest로 버전변경 - 김재신
 
   cluster_name    = var.cluster_name
   cluster_version = "1.29"

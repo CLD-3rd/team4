@@ -50,3 +50,13 @@ variable "db_password" {
   description = "RDS master user password"
   sensitive   = true
 }
+
+# Tags
+variable "tags" {
+  type        = map(string)
+  description = "리소스에 적용할 태그"
+  default = {
+    Environment = "dev"
+    Project     = "pung"
+  }
+}
