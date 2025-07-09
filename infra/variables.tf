@@ -9,7 +9,7 @@ variable "profile" {
 }
 
 variable "project" {
-  description = "프로젝트 네이밍 prefix"
+  description = "프로젝트 명"
   type        = string
 } 
 

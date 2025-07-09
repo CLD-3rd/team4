@@ -1,6 +1,5 @@
 provider "aws" {
   region  = var.region
-  profile = var.profile
 }
 
 
@@ -8,7 +7,7 @@ provider "aws" {
 # VPC
 module "vpc" {
   source       = "./modules/vpc"
-  project_name = var.project
+  project = var.project
 }
 
 
@@ -36,9 +35,6 @@ module "eks" {
 # Redis
 module "redis" {
   source            = "./modules/redis"
-  vpc_id            = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids # <-- redis 모듈에서는 해당 변수 사용 안함. 불필요하면 제거 가능
-  project_name      = var.project_name              # <-- redis 모듈에서도 사용 안함. 불필요하면 제거 가능
 }
 
 
