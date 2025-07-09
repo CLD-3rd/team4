@@ -8,6 +8,11 @@ variable "cluster_name" {
   description = "EKS 클러스터 이름"
 }
 
+variable "cluster_version" {
+  type = string
+  description = "EKS 클러스터 Version"
+}
+
 variable "vpc_id" {
   type        = string
   description = "VPC ID"

@@ -16,13 +16,19 @@ module "vpc" {
 # EKS
 module "eks" {
   source            = "./modules/eks"
+
+# 250709 원서희: EKS 모듈 값 전달 관련 내용 수정
+  cluster_name      = var.cluster_name
+  cluster_version   = var.cluster_version
+  project           = var.project
+
   vpc_id            = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids # <-- EKS 모듈은 subnet_ids로 받음. 변수명 통일 - 김재신
-  project_name      = var.project             # <-- EKS 모듈은 project로 받음. 변수명 통일 - 김재신
-  # 방법1: main.tf에서 private_subnet_ids → subnet_ids, project_name → project로 이름 변경해서 전달
-  # subnet_ids      = module.vpc.private_subnet_ids
-  # project         = var.project_name
-  # 방법2: modules/eks/variables.tf에서 subnet_ids → private_subnet_ids, project → project_name으로 변수명 변경
+  #project_name      = var.project             # <-- EKS 모듈은 project로 받음. 변수명 통일 - 김재신
+    # 방법1: main.tf에서 private_subnet_ids → subnet_ids, project_name → project로 이름 변경해서 전달
+    # subnet_ids      = module.vpc.private_subnet_ids
+    # project         = var.project_name
+    # 방법2: modules/eks/variables.tf에서 subnet_ids → private_subnet_ids, project → project_name으로 변수명 변경
 }
 
 

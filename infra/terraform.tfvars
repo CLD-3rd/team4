@@ -1,17 +1,17 @@
+region      = "ap-northeast-2"
+profile     = "default"
+project     = "memo" 
+
 # EKS
-bucket_name = "memo-image-bucket"
-environment = "dev"
-project     = "memo-app"
+cluster_name    = "memo-eks-cluster"
+cluster_version = "1.29"
+
 
 # S3
-bucket_name = "memo-image-prod-bucket"
-environment = "prod"
-project     = "memo-app"
+bucket_name = "memo-image-bucket"
+environment = "dev"
+
 
 # RDS
 db_username = "memo"
 db_password = "memomemomim"
-
-region      = "ap-northeast-2"
-profile     = "default"
-project_name = "myproject" 

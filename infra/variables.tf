@@ -9,10 +9,21 @@ variable "profile" {
 }
 
 variable "project" {
-  description = "프로젝트 리소스 네이밍 prefix"
+  description = "프로젝트 네이밍 prefix"
   type        = string
 } 
 
+
+# EKS
+variable "cluster_name" {
+  description = "EKS 클러스터 이름"
+  type        = string
+}
+
+variable "cluster_version" {
+  description = "EKS 쿠버네티스 버전"
+  type        = string
+}
 
 
 # S3
@@ -24,11 +35,6 @@ variable "bucket_name" {
 variable "environment" {
   type        = string
   description = "환경 이름 (dev, prod 등)"
-}
-
-variable "project" {
-  type        = string
-  description = "프로젝트 이름"
 }
 
 
