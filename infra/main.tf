@@ -35,9 +35,11 @@ module "redis" {
 
 # S3
 module "s3" {
-  source       = "./modules/s3"
-  project_name = var.project_name
-} 
+  source      = "./modules/s3"
+  bucket_name = var.bucket_name
+  environment = var.environment
+  project     = var.project
+}
 
 
 

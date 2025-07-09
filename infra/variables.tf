@@ -13,6 +13,25 @@ variable "project_name" {
   type        = string
 } 
 
+
+
+# S3
+variable "bucket_name" {
+  type        = string
+  description = "S3 버킷 이름"
+}
+
+variable "environment" {
+  type        = string
+  description = "환경 이름 (dev, prod 등)"
+}
+
+variable "project" {
+  type        = string
+  description = "프로젝트 이름"
+}
+
+
 # RDS
 variable "db_username" {
   type        = string
