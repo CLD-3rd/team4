@@ -6,7 +6,7 @@ module "eks" {
   cluster_version = "1.29"
 
   vpc_id          = var.vpc_id
-  subnet_ids      = var.subnet_ids
+  subnet_ids      = var.private_subnet_ids # 변수명 통일 - 김재신
 
   enable_irsa     = true
 
