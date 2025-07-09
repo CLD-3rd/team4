@@ -14,7 +14,7 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Client s3Client;
-    private final String bucketName = "1dyntestbucket";
+    private final String bucketName = "kaijutestbucket";
 
     // 이미지 업로드
     public String upload(MultipartFile file) throws IOException {
@@ -41,25 +41,25 @@ public class S3Service {
     }
 
     // 이미지 삭제
-//    public void delete(String imageUrl) {
-//        try {
-//            String key = extractKeyFromUrl(imageUrl);
-//            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-//                    .bucket(bucketName)
-//                    .key(key)
-//                    .build();
-//
-//            s3Client.deleteObject(deleteRequest);
-//            System.out.println("S3 이미지 삭제 완료: " + key);
-//
-//        } catch (Exception e) {
-//            System.err.println("S3 이미지 삭제 실패: " + imageUrl);
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    // S3 URL에서 키 추출
-//    private String extractKeyFromUrl(String url) {
-//        return url.substring(url.indexOf(bucketName) + bucketName.length() + 1);
-//    }
+    public void delete(String imageUrl) {
+        try {
+            String key = extractKeyFromUrl(imageUrl);
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            s3Client.deleteObject(deleteRequest);
+            System.out.println("S3 이미지 삭제 완료: " + key);
+
+        } catch (Exception e) {
+            System.err.println("S3 이미지 삭제 실패: " + imageUrl);
+            e.printStackTrace();
+        }
+    }
+
+    // S3 URL에서 키 추출
+    private String extractKeyFromUrl(String url) {
+        return url.substring(url.indexOf(bucketName) + bucketName.length() + 1);
+    }
 }

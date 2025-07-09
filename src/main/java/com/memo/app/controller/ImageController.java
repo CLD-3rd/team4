@@ -11,16 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/image")
 public class ImageController {
 
-    private final S3Service s3Uploader;
+    private final S3Service s3Service;
 
-    // 이미지 업로드
-    @PostMapping("/upload")
-    public ResponseEntity<?> upload(@RequestPart("image") MultipartFile image) {
-        try {
-            String imageUrl = s3Uploader.upload(image);
-            return ResponseEntity.ok().body(imageUrl);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("업로드 실패: " + e.getMessage());
-        }
-    }
 }
