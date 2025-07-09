@@ -3,11 +3,17 @@ provider "aws" {
   profile = var.profile
 }
 
+
+
+# VPC
 module "vpc" {
   source       = "./modules/vpc"
   project_name = var.project
 }
 
+
+
+# EKS
 module "eks" {
   source            = "./modules/eks"
   vpc_id            = module.vpc.vpc_id
@@ -19,6 +25,9 @@ module "eks" {
   # 방법2: modules/eks/variables.tf에서 subnet_ids → private_subnet_ids, project → project_name으로 변수명 변경
 }
 
+
+
+# Redis
 module "redis" {
   source            = "./modules/redis"
   vpc_id            = module.vpc.vpc_id
@@ -26,8 +35,27 @@ module "redis" {
   project_name      = var.project_name              # <-- redis 모듈에서도 사용 안함. 불필요하면 제거 가능
 }
 
-module "s3" {
-  source       = "./modules/s3"
-  project_name = var.project # project_name 에서 변수명 통일 - 김재신
 
-} 
+
+# S3
+module "s3" {
+  source      = "./modules/s3"
+  bucket_name = var.bucket_name
+  environment = var.environment
+  project_name = var.project # project_name 에서 변수명 통일 - 김재신
+}
+
+# RDS
+module "rds" {
+  source              = "./modules/rds"
+  name                = "myapp-mysql"
+  engine_version      = "8.0.36"
+  instance_class      = "db.t3.micro"
+  allocated_storage   = 20
+  db_name             = "memo"
+  username            = var.db_username
+  password            = var.db_password
+  subnet_ids          = module.vpc.private_subnet_ids
+  security_group_ids  = [aws_security_group.rds.id]
+  tags                = var.tags
+}
