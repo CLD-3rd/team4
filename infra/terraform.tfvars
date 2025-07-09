@@ -8,3 +8,7 @@ project     = "memo-app"
 # RDS
 db_username = "memo"
 db_password = "memomemomim"
+
+region      = "ap-northeast-2"
+profile     = "default"
+project_name = "myproject" 

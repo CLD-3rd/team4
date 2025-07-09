@@ -1,11 +1,43 @@
+provider "aws" {
+  region  = var.region
+  profile = var.profile
+}
+
+
+
+# VPC
+module "vpc" {
+  source       = "./modules/vpc"
+  project_name = var.project_name
+}
+
+
+
 # EKS
 module "eks" {
-  source       = "./modules/eks"
-  cluster_name = "memo-eks"
-  vpc_id       = module.vpc.vpc_id
-  subnet_ids   = module.vpc.private_subnet_ids
-  project      = "memo-note"
+  source            = "./modules/eks"
+  vpc_id            = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  project_name      = var.project_name
 }
+
+
+
+# Redis
+module "redis" {
+  source            = "./modules/redis"
+  vpc_id            = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  project_name      = var.project_name
+}
+
+
+
+# S3
+module "s3" {
+  source       = "./modules/s3"
+  project_name = var.project_name
+} 
 
 
 
