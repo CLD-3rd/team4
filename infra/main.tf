@@ -43,12 +43,12 @@ module "eks" {
 
 
 # S3
-# module "s3" {
-#   source      = "./modules/s3"
-#   bucket_name = var.bucket_name
-#   environment = var.environment
-#   project = var.project # project_name 에서 변수명 통일 - 김재신
-# }
+module "s3" {
+  source      = "./modules/s3"
+  bucket_name = var.bucket_name
+  environment = var.environment
+  project = var.project # project_name 에서 변수명 통일 - 김재신
+}
 
 # RDS Security Group - sg 추가 -김재신
 # resource "aws_security_group" "rds" {
