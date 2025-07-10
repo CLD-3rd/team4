@@ -32,7 +32,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="memo-file" class="form-label">파일 (선택)</label>
-                        <input class="form-control" type="file" id="memo-file" name="file">
+                        <input class="form-control" type="file" id="memo-file" name="image">
                     </div>
                     <button type="submit" class="btn btn-primary">생성</button>
                 </form>
@@ -95,7 +95,7 @@
             formData.append('text', memoTextInput.value);
             
             if (memoFileInput.files.length > 0) {
-                formData.append('file', memoFileInput.files[0]);
+                formData.append('image', memoFileInput.files[0]);
             }
 
             try {
