@@ -28,7 +28,7 @@ public class MemoService {
         memo.setId(id); // 클라이언트에게는 순수 UUID를 반환
         memo.setText(text);
 
-        long ttlInSeconds = 60;
+        long ttlInSeconds = 10;
         Duration ttl = Duration.ofSeconds(ttlInSeconds);
         memo.setTtl(ttlInSeconds);
 
