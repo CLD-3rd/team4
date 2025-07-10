@@ -3,31 +3,32 @@ package com.memo.app.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 import com.memo.app.listener.RedisKeyExpirationListener;
-
-import lombok.RequiredArgsConstructor;
+import com.memo.app.service.S3Service;
 
 @Configuration
-@RequiredArgsConstructor
 public class RedisConfig {
 
-    private final RedisKeyExpirationListener redisKeyExpirationListener;
-    private final RedisConnectionFactory redisConnectionFactory;
+    @Bean
+    public RedisKeyExpirationListener redisKeyExpirationListener(
+        RedisTemplate<String, String> redisTemplate,
+        S3Service s3Service
+    ) {
+        return new RedisKeyExpirationListener(redisTemplate, s3Service);
+    }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer() {
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+        RedisConnectionFactory connectionFactory,
+        RedisKeyExpirationListener expirationListener
+    ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(redisConnectionFactory);
-
-        // "expired" 이벤트 리스너 등록
-        container.addMessageListener(
-            redisKeyExpirationListener,
-            new PatternTopic("__keyevent@0__:expired")
-        );
-
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(expirationListener, new PatternTopic("__keyevent@0__:expired"));
         return container;
     }
 }

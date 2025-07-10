@@ -14,7 +14,8 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Client s3Client;
-    private final String bucketName = "kaijutestbucket";
+//    private final String bucketName = "kaijutestbucket";
+    private final String bucketName = "1dyntestbucket";
 
     // 이미지 업로드
     public String upload(MultipartFile file) throws IOException {
@@ -44,6 +45,13 @@ public class S3Service {
     public void delete(String imageUrl) {
         try {
             String key = extractKeyFromUrl(imageUrl);
+            
+            // url 검증
+            if (key == null) {
+                System.err.println("❌ 삭제 실패 - 유효하지 않은 S3 URL: " + imageUrl);
+                return;
+            }
+            
             DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                     .bucket(bucketName)
                     .key(key)
@@ -60,6 +68,6 @@ public class S3Service {
 
     // S3 URL에서 키 추출
     private String extractKeyFromUrl(String url) {
-        return url.substring(url.indexOf(bucketName) + bucketName.length() + 1);
+        return url.substring(url.indexOf("images/"));
     }
 }

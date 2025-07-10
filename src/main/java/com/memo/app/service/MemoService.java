@@ -22,8 +22,9 @@ public class MemoService {
 
     public Memo createMemo(String text, String imageUrl) throws IOException {
         String id = UUID.randomUUID().toString();
+        String memoId = "memo:" + id;
         Memo memo = new Memo();
-        memo.setId(id);
+        memo.setId(memoId);
         memo.setText(text);
         
         if (imageUrl != null) {
@@ -34,18 +35,20 @@ public class MemoService {
         memo.setTtl(ttl);
 
         String memoJson = objectMapper.writeValueAsString(memo);
-        redisTemplate.opsForValue().set(id, memoJson, Duration.ofSeconds(ttl));
+        redisTemplate.opsForValue().set(memoId, memoJson, Duration.ofSeconds(ttl));
+        redisTemplate.opsForValue().set("image:" + id, imageUrl);
 
         return memo;
     }
 
     public Memo getMemo(String id) throws IOException {
-        String memoJson = redisTemplate.opsForValue().get(id);
+    	String memoId = "memo:" + id;
+        String memoJson = redisTemplate.opsForValue().get(memoId);
         if (memoJson == null) {
             return null;
         }
         Memo memo = objectMapper.readValue(memoJson, Memo.class);
-        Long ttl = redisTemplate.getExpire(id);
+        Long ttl = redisTemplate.getExpire(memoId);
         memo.setTtl(ttl);
         return memo;
     }
