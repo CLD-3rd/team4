@@ -1,3 +1,4 @@
+
 package com.memo.app.controller;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,8 +31,10 @@ public class MemoController {
     @PostMapping
     public ResponseEntity<Memo> createMemo(
             @RequestPart("text") String text,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "viewLimit", required = false) int viewLimit
     ) throws IOException {
+    	
         String imageUrl = null;
 
         if (image != null && !image.isEmpty()) {
@@ -48,7 +52,7 @@ public class MemoController {
             System.out.println("수신된 이미지가 없거나 비어있습니다.");
         }
 
-        Memo memo = memoService.createMemo(text, imageUrl);
+        Memo memo = memoService.createMemo(text, imageUrl, viewLimit);
         return ResponseEntity.status(HttpStatus.CREATED).body(memo);
     }
 
