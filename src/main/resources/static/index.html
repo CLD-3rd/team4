@@ -28,7 +28,11 @@
                 <h5 class="card-title">새 메모 작성</h5>
                 <form id="create-memo-form">
                     <div class="mb-3">
-                        <textarea class="form-control" id="memo-text" rows="3" placeholder="메모 내용을 입력하세요..." required></textarea>
+                        <textarea class="form-control" id="memo-text" name="text" rows="3" placeholder="메모 내용을 입력하세요..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="memo-file" class="form-label">파일 (선택)</label>
+                        <input class="form-control" type="file" id="memo-file" name="file">
                     </div>
                     <button type="submit" class="btn btn-primary">생성</button>
                 </form>
@@ -49,7 +53,8 @@
             <div class="card-body">
                 <blockquote class="blockquote mb-0">
                     <p id="memo-content"></p>
-                    <footer class="blockquote-footer"><span id="memo-ttl"></span>초 후에 만료됩니다.</footer>
+                    <div id="memo-file-container" class="mt-2"></div>
+                    <footer class="blockquote-footer mt-2"><span id="memo-ttl"></span>초 후에 만료됩니다.</footer>
                 </blockquote>
             </div>
         </div>
@@ -61,10 +66,12 @@
     <script>
         const createForm = document.getElementById('create-memo-form');
         const memoTextInput = document.getElementById('memo-text');
+        const memoFileInput = document.getElementById('memo-file');
         const createResultDiv = document.getElementById('create-result');
         const memoLink = createResultDiv.querySelector('a');
         const memoViewDiv = document.getElementById('memo-view');
         const memoContentP = document.getElementById('memo-content');
+        const memoFileContainer = document.getElementById('memo-file-container');
         const memoTtlSpan = document.getElementById('memo-ttl');
         const errorMessageDiv = document.getElementById('error-message');
 
@@ -83,29 +90,42 @@
         createForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideError();
-            const text = memoTextInput.value;
+
+            const formData = new FormData();
+            formData.append('text', memoTextInput.value);
+            
+            if (memoFileInput.files.length > 0) {
+                formData.append('file', memoFileInput.files[0]);
+            }
 
             try {
                 const response = await fetch('/api/notes', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({ 'text': text })
+                    body: formData // FormData를 사용하면 브라우저가 Content-Type을 자동으로 설정합니다.
                 });
 
                 if (!response.ok) {
-                    throw new Error(`서버 오류: ${response.status}`);
+                    // 서버가 HTML 에러 페이지를 반환하는 경우를 대비해, 응답을 텍스트로 먼저 읽어봅니다.
+                    const errorText = await response.text();
+                    try {
+                        // 텍스트가 JSON 형식인지 확인
+                        JSON.parse(errorText);
+                        // JSON이라면 그대로 에러를 던짐
+                        throw new Error(`서버 오류: ${response.status} - ${errorText}`);
+                    } catch (e) {
+                        // JSON이 아니라면 (HTML 등) 일반적인 메시지를 표시
+                        throw new Error(`서버 오류: ${response.status}`);
+                    }
                 }
 
                 const newMemo = await response.json();
-                const viewUrl = `${window.location.pathname}#${newMemo.id}`;
+                const viewUrl = `${window.location.origin}${window.location.pathname}#${newMemo.id}`;
                 
                 memoLink.href = viewUrl;
                 memoLink.textContent = viewUrl;
                 createResultDiv.classList.remove('d-none');
                 memoViewDiv.classList.add('d-none');
-                memoTextInput.value = '';
+                createForm.reset();
 
             } catch (error) {
                 showError(`메모 생성 실패: ${error.message}`);
@@ -139,6 +159,18 @@
                 const memo = await response.json();
                 memoContentP.textContent = memo.text;
                 memoTtlSpan.textContent = memo.ttl;
+
+                // 파일 표시 로직 수정
+                memoFileContainer.innerHTML = ''; // 이전 파일 초기화
+                if (memo.fileUrl) {
+                    // 간단하게 파일 링크를 제공합니다.
+                    const fileLink = document.createElement('a');
+                    fileLink.href = memo.fileUrl;
+                    fileLink.textContent = '첨부 파일 보기';
+                    fileLink.target = '_blank'; // 새 탭에서 열기
+                    memoFileContainer.appendChild(fileLink);
+                }
+                
                 memoViewDiv.classList.remove('d-none');
 
             } catch (error) {
