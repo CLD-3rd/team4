@@ -9,6 +9,7 @@ provider "aws" {
 # VPC
 module "vpc" {
   source       = "./modules/vpc"
+  project      = var.project
 }
 
 
