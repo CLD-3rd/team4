@@ -30,7 +30,7 @@
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid" style="max-width: 960px;">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="/list.html">
                 <img src="./images/pung.png" alt="Pung! Logo" class="logo-img">
             </a>
             <div class="d-flex align-items-center">
@@ -84,8 +84,8 @@
             </div>
 
             <div id="memo-image-display" class="mb-4 d-none">
-                <label class="form-label">첨부 이미지</label>
-                <img src="" class="img-fluid rounded" alt="첨부 이미지">
+                <label class="form-label">첨부 파일</label>
+                <div class="w-100 px-4 py-3 bg-light border rounded-md" id="memo-file-name"></div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center pt-4">
@@ -97,7 +97,7 @@
                         <i class="bi bi-download"></i> 다운로드
                     </button>
                 </div>
-                <a href="/write.html" class="btn btn-action-primary">
+                <a href="/write" class="btn btn-action-primary">
                     새 메모 작성
                 </a>
             </div>
@@ -113,7 +113,6 @@
         const expiresAtBox = document.getElementById('expires-at-box');
         const expiresAtSpan = document.getElementById('expires-at');
         const onceOnlyWarning = document.getElementById('once-only-warning');
-        const remainingViewsSpan = document.getElementById('remaining-views');
         const memoTitleDisplay = document.getElementById('memo-title-display');
         const memoContentDisplay = document.getElementById('memo-content-display');
         const memoImageDisplay = document.getElementById('memo-image-display');
@@ -129,13 +128,13 @@
         }
 
         async function fetchMemo() {
-            const id = window.location.hash.substring(1);
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
             if (!id) {
-                showError('조회할 메모 ID가 없습니다. URL에 #메모ID를 추가해주세요.');
+                showError('조회할 메모 ID가 없습니다.');
                 return;
             }
-
-            errorMessageDiv.classList.add('d-none');
 
             try {
                 const response = await fetch(`/api/notes/${id}`);
@@ -144,38 +143,39 @@
                     showError('메모를 찾을 수 없거나 만료되었습니다.');
                     return;
                 }
-
                 if (!response.ok) {
                     throw new Error(`서버 오류: ${response.status}`);
                 }
 
                 const memo = await response.json();
-                
-                createdAtSpan.textContent = `생성: ${new Date(memo.createdAt).toLocaleString()}`;
-                viewCountSpan.textContent = `조회: ${memo.viewCount}회`;
 
-                if (memo.expiresAt) {
-                    expiresAtSpan.textContent = new Date(memo.expiresAt).toLocaleString();
+                // 네비게이션 바에 사용자 이름 표시 (API 응답에 사용자 정보가 포함되어 있다고 가정)
+                // 이 부분은 실제 API 응답 구조에 따라 수정이 필요할 수 있습니다.
+                // const usernameDisplay = document.getElementById('username-display');
+                // if (usernameDisplay && memo.user) {
+                //     usernameDisplay.textContent = `${memo.user.uid}님`;
+                // }
+
+                // TTL 정보는 DTO에 포함되어 있다고 가정
+                if (memo.ttl) {
+                    const expires = new Date(new Date().getTime() + memo.ttl * 1000);
+                    expiresAtSpan.textContent = expires.toLocaleString();
                     expiresAtBox.classList.remove('d-none');
-                } else {
-                    expiresAtBox.classList.add('d-none');
                 }
 
-                if (memo.isOnceOnly && memo.remainingViews !== null) {
-                    remainingViewsSpan.textContent = memo.remainingViews;
+                if (memo.viewLimit === 1) {
                     onceOnlyWarning.classList.remove('d-none');
-                } else {
-                    onceOnlyWarning.classList.add('d-none');
                 }
 
                 memoTitleDisplay.textContent = memo.title || '제목 없음';
                 memoContentDisplay.textContent = memo.text;
 
-                if (memo.imageUrl) {
-                    memoImage.src = memo.imageUrl;
-                    memoImageDisplay.classList.remove('d-none');
+                if (memo.fileName) {
+                    const memoFileNameDiv = document.getElementById('memo-file-name');
+                    memoFileNameDiv.textContent = memo.fileName;
+                    document.getElementById('memo-image-display').classList.remove('d-none');
                 } else {
-                    memoImageDisplay.classList.add('d-none');
+                    document.getElementById('memo-image-display').classList.add('d-none');
                 }
                 
                 memoDisplayDiv.classList.remove('d-none');
@@ -195,9 +195,8 @@
 
         downloadBtn.addEventListener('click', () => {
             const element = document.createElement('a');
-            const file = new Blob([`${memoTitleDisplay.textContent}\n\n${memoContentDisplay.textContent}`], {
-                type: 'text/plain'
-            });
+            const fileContent = `${memoTitleDisplay.textContent}\n\n${memoContentDisplay.textContent}`;
+            const file = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
             element.href = URL.createObjectURL(file);
             element.download = `${memoTitleDisplay.textContent || 'memo'}.txt`;
             document.body.appendChild(element);
@@ -205,8 +204,23 @@
             document.body.removeChild(element);
         });
 
-        window.addEventListener('hashchange', fetchMemo);
-        document.addEventListener('DOMContentLoaded', fetchMemo);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch username
+            fetch('/api/auth/username')
+                .then(response => {
+                    if (!response.ok) throw new Error('Could not fetch username');
+                    return response.json();
+                })
+                .then(data => {
+                    const usernameDisplay = document.getElementById('username-display');
+                    if (usernameDisplay && data.username) {
+                        usernameDisplay.textContent = `${data.username}님`;
+                    }
+                })
+                .catch(error => console.error('Error fetching username:', error));
+            
+            fetchMemo();
+        });
     </script>
 </body>
 </html>

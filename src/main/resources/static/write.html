@@ -30,7 +30,7 @@
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid" style="max-width: 960px;">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="/list.html">
                 <img src="./images/pung.png" alt="Pung! Logo" class="logo-img">
             </a>
             <div class="d-flex align-items-center">
@@ -101,6 +101,9 @@
         
         <input type="file" id="file-input" class="d-none">
 
+        <!-- 파일명 표시 영역 (최소 높이 설정) -->
+        <div id="file-name-display" class="text-muted mb-2" style="min-height: 1.5rem;"></div>
+
         <div class="d-flex justify-content-between align-items-center pt-4">
             <button type="button" class="btn btn-action-secondary" onclick="document.getElementById('file-input').click();">
                 <i class="bi bi-paperclip"></i> 파일 첨부
@@ -113,6 +116,22 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Fetch username
+            fetch('/api/auth/username')
+                .then(response => {
+                    if (!response.ok) throw new Error('Could not fetch username');
+                    return response.json();
+                })
+                .then(data => {
+                    const usernameDisplay = document.getElementById('username-display');
+                    if (usernameDisplay && data.username) {
+                        usernameDisplay.textContent = `${data.username}님`;
+                    }
+                })
+                .catch(error => console.error('Error fetching username:', error));
+        });
+
         // 시간 프리셋 버튼 로직
         const presetButtons = document.querySelectorAll('.btn-preset');
         presetButtons.forEach(button => {
@@ -123,11 +142,18 @@
             });
         });
 
-        // 파일 첨부 시 파일 이름 표시 로직 (선택적)
+        // 파일 첨부 시 파일 이름 표시 로직
         const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name-display');
         fileInput.addEventListener('change', () => {
-            const fileName = fileInput.files.length > 0 ? fileInput.files[0].name : '파일 첨부';
-            // 파일 이름을 표시할 UI 요소가 있다면 여기에 업데이트
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name;
+                fileNameDisplay.textContent = `첨부된 파일: ${fileName}`;
+                fileNameDisplay.title = fileName; // 툴팁으로 전체 파일명 보여주기
+            } else {
+                fileNameDisplay.textContent = '';
+                fileNameDisplay.title = '';
+            }
         });
 
         // 저장 및 링크 생성 버튼 로직
@@ -135,22 +161,62 @@
             const formData = new FormData();
             formData.append('title', document.getElementById('memo-title').value);
             formData.append('text', document.getElementById('memo-content').value);
-            if (fileInput.files.length > 0) {
-                formData.append('image', fileInput.files[0]);
+            
+            const isOnceOnly = document.getElementById('once-only-check').checked;
+            formData.append('viewLimit', isOnceOnly ? '1' : '0');
+
+            const imageFile = document.getElementById('file-input').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
             }
-            // TTL, 1회 열람 등 다른 데이터도 formData에 추가해야 함
+
+            // TTL 로직 추가
+            let ttlMinutes = 1; // 기본값 1분
+            const activeTab = document.querySelector('.tab-pane.fade.show.active');
+
+            if (activeTab.id === 'pills-preset') {
+                const activeButton = document.querySelector('.btn-preset.active');
+                if (activeButton) {
+                    const time = activeButton.dataset.time; // "5m", "1h", "1d"
+                    const value = parseInt(time.slice(0, -1));
+                    const unit = time.slice(-1);
+                    if (unit === 'm') {
+                        ttlMinutes = value;
+                    } else if (unit === 'h') {
+                        ttlMinutes = value * 60;
+                    } else if (unit === 'd') {
+                        ttlMinutes = value * 60 * 24;
+                    }
+                }
+            } else if (activeTab.id === 'pills-manual') {
+                const value = parseInt(document.getElementById('custom-time-value').value);
+                const unit = document.getElementById('custom-time-unit').value;
+                if (!isNaN(value) && value > 0) {
+                    if (unit === 'm') {
+                        ttlMinutes = value;
+                    } else if (unit === 'h') {
+                        ttlMinutes = value * 60;
+                    } else if (unit === 'd') {
+                        ttlMinutes = value * 60 * 24;
+                    }
+                }
+            }
+            formData.append('ttlMinutes', ttlMinutes);
 
             try {
                 const response = await fetch('/api/notes', {
                     method: 'POST',
                     body: formData
                 });
-                if (!response.ok) throw new Error('Server error');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${errorText}`);
+                }
                 const newMemo = await response.json();
-                window.location.href = `/view#${newMemo.id}`;
+                window.location.href = `/view?id=${newMemo.id}`;
             } catch (error) {
                 console.error('Failed to create memo:', error);
-                alert('메모 생성에 실패했습니다.');
+                alert(`메모 생성에 실패했습니다: ${error.message}`);
             }
         });
     </script>

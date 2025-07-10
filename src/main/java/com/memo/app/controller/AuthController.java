@@ -10,6 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -35,5 +41,12 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok("User registered successfully!");
+    }
+
+    @GetMapping("/username")
+    public ResponseEntity<Map<String, String>> getUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = authentication.getName();
+        return ResponseEntity.ok(Collections.singletonMap("username", currentUserId));
     }
 }

@@ -40,6 +40,18 @@ public class MemoList {
     @Column(name = "expire_at")
     private LocalDateTime expireAt;
 
+    @Column(name = "view_limit")
+    private Integer viewLimit = 0;
+
+    @Column(name = "view_count")
+    private Integer viewCount = 0;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @Column(name = "file_url", length = 2048)
     private String fileUrl;
+
+    @Column(name = "original_file_name", length = 255)
+    private String originalFileName;
 }

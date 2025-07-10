@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login")
                 .usernameParameter("uid")
                 .passwordParameter("upw")
-                .defaultSuccessUrl("/", true)
+                .defaultSuccessUrl("/list", true)
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")

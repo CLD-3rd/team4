@@ -32,15 +32,19 @@ public class MemoController {
     public ResponseEntity<Memo> createMemo(
             @RequestPart("text") String text,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "viewLimit", required = false) int viewLimit
+            @RequestParam(value = "viewLimit", required = false) int viewLimit,
+            @RequestParam(value = "title", defaultValue = "제목 없음") String title,
+            @RequestParam(value = "ttlMinutes", defaultValue = "1") int ttlMinutes
     ) throws IOException {
     	
         String imageUrl = null;
+        String originalFileName = null;
 
         if (image != null && !image.isEmpty()) {
             System.out.println("이미지 수신됨: " + image.getOriginalFilename() + ", size: " + image.getSize());
             try {
                 imageUrl = s3Service.upload(image);
+                originalFileName = image.getOriginalFilename();
                 System.out.println("S3 업로드 성공: " + imageUrl);
             } catch (Exception e) {
                 System.err.println("S3 업로드 실패");
@@ -52,7 +56,7 @@ public class MemoController {
             System.out.println("수신된 이미지가 없거나 비어있습니다.");
         }
 
-        Memo memo = memoService.createMemo(text, imageUrl, viewLimit);
+        Memo memo = memoService.createMemo(text, imageUrl, originalFileName, viewLimit, title, ttlMinutes);
         return ResponseEntity.status(HttpStatus.CREATED).body(memo);
     }
 
@@ -63,5 +67,11 @@ public class MemoController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(memo);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<java.util.List<com.memo.app.entity.MemoList>> getMyMemos() {
+        java.util.List<com.memo.app.entity.MemoList> memos = memoService.getMyMemos();
+        return ResponseEntity.ok(memos);
     }
 }
