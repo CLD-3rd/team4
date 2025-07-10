@@ -37,8 +37,8 @@ resource "aws_security_group" "memo_rds" {
 resource "aws_db_instance" "memo_rds" {
   identifier             = var.name
   db_name                = var.db_name
-  db_username               = var.username
-  db_password               = var.password
+  db_username               = var.db_username
+  db_password               = var.db_password
   engine                 = "mysql"
   engine_version         = var.engine_version
   instance_class         = var.instance_class
