@@ -7,24 +7,24 @@ resource "aws_vpc" "vpc1" { # vpc 생성
 }
 
 resource "aws_subnet" "public1" { # 퍼블릭 subnet
-  vpc_id            = aws_vpc.vpc1.id
-  cidr_block        = var.public_subnet_cidr
-  availability_zone = var.az # 서울 a 영역
-  map_public_ip_on_launch = true # 퍼블릭
+  vpc_id                  = aws_vpc.vpc1.id
+  cidr_block              = var.public_subnet_cidr
+  availability_zone       = var.az # 서울 a 영역
+  map_public_ip_on_launch = true   # 퍼블릭
   tags = {
     Name = var.public_subnet_name
   }
 }
 
 resource "aws_subnet" "private1" { #프라이빗 subnet
-  vpc_id            = aws_vpc.vpc1.id
-  cidr_block        = var.private_subnet_cidr
-  availability_zone = var.az # 서울 a 영역
-  map_public_ip_on_launch = false # 프라이빗
+  vpc_id                  = aws_vpc.vpc1.id
+  cidr_block              = var.private_subnet_cidr
+  availability_zone       = var.az # 서울 a 영역
+  map_public_ip_on_launch = false  # 프라이빗
   tags = {
     Name = var.private_subnet_name
   }
-} 
+}
 
 # 인터넷 게이트웨이
 resource "aws_internet_gateway" "igw" {

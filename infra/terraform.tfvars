@@ -1,6 +1,6 @@
-region      = "ap-northeast-2"
-profile     = "default"
-project     = "memo" 
+region  = "ap-northeast-2"
+profile = "default"
+project = "memo"
 
 # EKS
 cluster_name    = "memo-eks-cluster"
@@ -13,5 +13,6 @@ environment = "dev"
 
 
 # RDS
+db_name = "memodb"
 db_username = "memo"
 db_password = "memomemomim"
