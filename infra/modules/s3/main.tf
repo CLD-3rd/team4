@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "memo_image_bucket" {
-  bucket = var.bucket_name
+  bucket        = var.bucket_name
   force_destroy = true
 
   tags = {
