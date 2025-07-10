@@ -25,7 +25,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/login", "/login.html",
                     "/signup", "/signup.html",
-                    "/api/auth/**",
+//                    "/api/auth/**", // 로그인 필수 ON
+                    "/api/**",
                     "/static/**", "/css/**", "/js/**"
                 ).permitAll()
                 .anyRequest().authenticated()
