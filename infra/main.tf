@@ -35,10 +35,9 @@ module "eks" {
 
 
 # Redis
-# module "redis" {
-#   source            = "./modules/redis"
-#   tags              = var.tags
-# }
+ module "redis" {
+   source            = "./modules/redis"
+ }
 
 
 

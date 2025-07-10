@@ -40,6 +40,11 @@ variable "environment" {
 
 
 # RDS
+variable "db_name" {
+  type        = string
+  description = "RDS database name"
+}
+
 variable "db_username" {
   type        = string
   description = "RDS master username"

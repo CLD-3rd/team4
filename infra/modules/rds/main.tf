@@ -6,7 +6,7 @@ resource "aws_db_subnet_group" "memo_rds" {
   tags = var.tags
 }
 
-# RDS Security Group
+# RDS Security Group - 기존 루트 main.tf 에서 모듈로 이동 관리편이 - 김재신
 resource "aws_security_group" "memo_rds" {
   name_prefix = "rds-sg-"
   vpc_id      = var.vpc_id
@@ -32,8 +32,8 @@ resource "aws_security_group" "memo_rds" {
 resource "aws_db_instance" "memo_rds" {
   identifier             = var.name
   db_name                = var.db_name
-  db_username               = var.db_username
-  db_password               = var.db_password
+  username               = var.db_username
+  password               = var.db_password
   engine                 = "mysql"
   engine_version         = var.engine_version
   instance_class         = var.instance_class
