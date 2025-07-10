@@ -1,37 +1,32 @@
 #RDS 서브넷
 resource "aws_db_subnet_group" "memo_rds" {
   name       = "${var.name}-subnet-group"
-  subnet_ids = var.subnet_ids
+  subnet_ids = var.private_subnet_ids
 
   tags = var.tags
 }
 
-
-
-# RDS sg그룹
+# RDS Security Group
 resource "aws_security_group" "memo_rds" {
-  count       = length(var.security_group_ids) == 0 ? 1 : 0
-  name        = "${var.name}-sg"
-  description = "Default security group for RDS"
-  vpc_id      = var.vpc_id  # ← 필요 시 변수로 받아야 함
+  name_prefix = "rds-sg-"
+  vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # 테스트용, 실운영 시 좁혀야 함
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = var.allowed_security_group_ids
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]  # VPC 내부 트래픽만 허용
   }
 
   tags = var.tags
 }
-
 
 # RDS 생성
 resource "aws_db_instance" "memo_rds" {
@@ -44,7 +39,7 @@ resource "aws_db_instance" "memo_rds" {
   instance_class         = var.instance_class
   allocated_storage      = var.allocated_storage
   db_subnet_group_name   = aws_db_subnet_group.memo_rds.name
-  vpc_security_group_ids = length(var.security_group_ids) == 0 ? [aws_security_group.memo_rds[0].id] : var.security_group_ids
+  vpc_security_group_ids = [aws_security_group.memo_rds.id]
   skip_final_snapshot    = true
 
   tags = var.tags

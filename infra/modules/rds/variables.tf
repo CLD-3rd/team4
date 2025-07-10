@@ -38,24 +38,20 @@ variable "allocated_storage" {
   default     = 20
 }
 
-
-
 variable "private_subnet_ids" {
   description = "Subnet IDs for DB subnet group"
   type        = list(string)
 }
 
-variable "security_group_ids" {
-  description = "사용할 보안 그룹 ID 목록. 비어있으면 새로 생성함"
-  type        = list(string)
-  default     = []
-}
-
 variable "vpc_id" {
-  description = "보안 그룹 생성을 위한 VPC ID"
+  description = "VPC ID for Security Group"
   type        = string
 }
 
+variable "allowed_security_group_ids" {
+  description = "Security group IDs allowed to access RDS"
+  type        = list(string)
+}
 
 variable "tags" {
   description = "RDS 공통 태그"
