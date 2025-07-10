@@ -14,8 +14,8 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Client s3Client;
-//    private final String bucketName = "kaijutestbucket";
-    private final String bucketName = "1dyntestbucket";
+    private final String bucketName = "kaijutestbucket";
+//    private final String bucketName = "1dyntestbucket";
 
     // 이미지 업로드
     public String upload(MultipartFile file) throws IOException {

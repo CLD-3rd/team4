@@ -34,7 +34,18 @@ public class MemoController {
         String imageUrl = null;
 
         if (image != null && !image.isEmpty()) {
-            imageUrl = s3Service.upload(image);
+            System.out.println("이미지 수신됨: " + image.getOriginalFilename() + ", size: " + image.getSize());
+            try {
+                imageUrl = s3Service.upload(image);
+                System.out.println("S3 업로드 성공: " + imageUrl);
+            } catch (Exception e) {
+                System.err.println("S3 업로드 실패");
+                e.printStackTrace();
+                // 업로드 실패 시 에러 응답 반환
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        } else {
+            System.out.println("수신된 이미지가 없거나 비어있습니다.");
         }
 
         Memo memo = memoService.createMemo(text, imageUrl);
@@ -42,7 +53,7 @@ public class MemoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Memo> getMemo(@PathVariable String id) throws IOException {
+    public ResponseEntity<Memo> getMemo(@PathVariable("id") String id) throws IOException {
         Memo memo = memoService.getMemo(id);
         if (memo == null) {
             return ResponseEntity.notFound().build();
