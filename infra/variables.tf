@@ -1,6 +1,7 @@
 variable "region" {
-  description = "AWS 리전"
+  description = "AWS region"
   type        = string
+  default     = "ap-northeast-2"
 }
 
 variable "profile" {

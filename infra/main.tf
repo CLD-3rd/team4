@@ -1,5 +1,6 @@
 provider "aws" {
   region  = var.region
+  profile = "base-user"
 }
 
 
@@ -7,7 +8,6 @@ provider "aws" {
 # VPC
 module "vpc" {
   source       = "./modules/vpc"
-  project = var.project
 }
 
 
@@ -22,7 +22,7 @@ module "eks" {
   project           = var.project
 
   vpc_id            = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids # <-- EKS 모듈은 subnet_ids로 받음. 변수명 통일 - 김재신
+  private_subnet_ids = module.vpc.private_subnet_ids # <-- 2개 프라이빗 서브넷 ID 리스트
   #project_name      = var.project             # <-- EKS 모듈은 project로 받음. 변수명 통일 - 김재신
     # 방법1: main.tf에서 private_subnet_ids → subnet_ids, project_name → project로 이름 변경해서 전달
     # subnet_ids      = module.vpc.private_subnet_ids
@@ -33,53 +33,54 @@ module "eks" {
 
 
 # Redis
-module "redis" {
-  source            = "./modules/redis"
-}
+# module "redis" {
+#   source            = "./modules/redis"
+#   tags              = var.tags
+# }
 
 
 
 # S3
-module "s3" {
-  source      = "./modules/s3"
-  bucket_name = var.bucket_name
-  environment = var.environment
-  project = var.project # project_name 에서 변수명 통일 - 김재신
-}
+# module "s3" {
+#   source      = "./modules/s3"
+#   bucket_name = var.bucket_name
+#   environment = var.environment
+#   project = var.project # project_name 에서 변수명 통일 - 김재신
+# }
 
 # RDS Security Group - sg 추가 -김재신
-resource "aws_security_group" "rds" {
-  name_prefix = "rds-sg-"
-  vpc_id      = module.vpc.vpc_id
+# resource "aws_security_group" "rds" {
+#   name_prefix = "rds-sg-"
+#   vpc_id      = module.vpc.vpc_id
 
-  ingress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [module.eks.cluster_security_group_id]
-  }
+#   ingress {
+#     from_port       = 3306
+#     to_port         = 3306
+#     protocol        = "tcp"
+#     security_groups = [module.eks.cluster_security_group_id]
+#   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   egress { # 보안성 수정 전체허용 >> port , cidr_blocks 내부로 제한 - 김재신
+#     from_port   = 3306
+#     to_port     = 3306
+#     protocol    = "tcp"
+#     cidr_blocks = ["10.0.0.0/16"]  # VPC 내부 트래픽만 허용
+#   }
 
-  tags = var.tags
-}
+#   tags = var.tags
+# }
 
 # RDS
-module "rds" {
-  source              = "./modules/rds"
-  name                = "myapp-mysql"
-  engine_version      = "8.0.36"
-  instance_class      = "db.t3.micro"
-  allocated_storage   = 20
-  db_name             = "memo"
-  username            = var.db_username
-  password            = var.db_password
-  subnet_ids          = module.vpc.private_subnet_ids
-  security_group_ids  = [aws_security_group.rds.id]
-  tags                = var.tags
-}
+# module "rds" {
+#   source              = "./modules/rds"
+#   name                = "myapp-mysql"
+#   engine_version      = "8.0.36"
+#   instance_class      = "db.t3.micro"
+#   allocated_storage   = 20
+#   db_name             = "memo"
+#   username            = var.db_username
+#   password            = var.db_password
+#   private_subnet_ids = [module.vpc.private_subnet_id] # <-- private_subnet_ids로 변수명 통일 - 김재신
+#   security_group_ids  = [aws_security_group.rds.id]
+#   tags                = var.tags
+# }

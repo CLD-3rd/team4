@@ -39,7 +39,7 @@ variable "password" {
   sensitive   = true
 }
 
-variable "subnet_ids" {
+variable "private_subnet_ids" {
   description = "Subnet IDs for DB subnet group"
   type        = list(string)
 }
