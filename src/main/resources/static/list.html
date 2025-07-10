@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pung! - 내 메모 목록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #F7F7F7; color: #636D5B; }
+        .navbar { background-color: #DBECD5; border-bottom: 1px solid #BFDDD0; }
+        .navbar-brand .logo-img { width: 8rem; height: 4rem; object-fit: contain; }
+        .nav-link, .btn-link { color: #647259; font-weight: 500; }
+        .nav-link:hover, .btn-link:hover { color: #4b5542; }
+        .main-title { color: #636D5B; font-weight: bold; }
+        .memo-card {
+            background-color: white;
+            border: 1px solid #e9ecef;
+            border-radius: 0.375rem;
+            transition: box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .memo-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .memo-card.expired {
+            opacity: 0.65;
+            background-color: #f8f9fa;
+            cursor: default;
+        }
+        .btn-action-primary { background-color: #647259; color: white; }
+        .btn-action-primary:hover { background-color: #4b5542; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid" style="max-width: 960px;">
+            <a class="navbar-brand d-flex align-items-center" href="/list.html">
+                <img src="./images/pung.png" alt="Pung! Logo" class="logo-img">
+            </a>
+            <div class="d-flex align-items-center">
+                <span id="username-display" class="nav-link me-3"></span>
+                <a href="/logout" class="btn btn-link"><i class="bi bi-box-arrow-right fs-4"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5" style="max-width: 960px;">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <h1 class="main-title">내 메모 목록</h1>
+            <a href="/write.html" class="btn btn-action-primary">새 메모 작성</a>
+        </header>
+
+        <div id="memo-list-container" class="row g-4">
+            <!-- 메모 목록이 여기에 동적으로 추가됩니다. -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/api/memos')
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                        return Promise.reject('User not authenticated');
+                    }
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    const container = document.getElementById('memo-list-container');
+                    if (!container) return;
+
+                    if (data.length === 0) {
+                        container.innerHTML = '<div class="col-12"><p class="text-center text-muted py-5">작성한 메모가 없습니다.</p></div>';
+                        return;
+                    }
+
+                    const usernameDisplay = document.getElementById('username-display');
+                    if (usernameDisplay && data.length > 0) {
+                        usernameDisplay.textContent = `${data[0].user.uid}님`;
+                    }
+
+                    data.forEach(memo => {
+                        const isExpired = memo.isDeleted || (memo.expireAt && new Date(memo.expireAt) < new Date());
+                        const cardCol = document.createElement('div');
+                        cardCol.className = 'col-12 col-md-6 col-lg-4';
+
+                        let tags = '';
+                        if (memo.viewLimit === 1) {
+                            tags += `<span class="badge bg-warning text-dark me-2">1회 열람</span>`;
+                        }
+                        if (isExpired) {
+                            tags += `<span class="badge bg-danger">만료됨</span>`;
+                        }
+
+                        cardCol.innerHTML = `
+                            <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" ${!isExpired ? `onclick="location.href='/view.html?id=${memo.memoId}'"` : ''}>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title text-truncate fw-bold">${memo.memoTitle || '제목 없음'}</h5>
+                                    <div class="d-flex justify-content-between text-muted small mt-auto pt-2">
+                                        <span>조회: ${memo.viewCount}</span>
+                                        <span>${new Date(memo.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <div class="mt-2">${tags}</div>
+                                </div>
+                                ${memo.expireAt ? `<div class="card-footer text-muted small">만료: ${new Date(memo.expireAt).toLocaleString()}</div>` : ''}
+                            </div>
+                        `;
+                        container.appendChild(cardCol);
+                    });
+                })
+                .catch(error => {
+                    if (error.message !== 'User not authenticated') {
+                        console.error('Error fetching memos:', error);
+                        const container = document.getElementById('memo-list-container');
+                        if(container) container.innerHTML = '<div class="col-12"><p class="text-center text-danger py-5">메모를 불러오는 중 오류가 발생했습니다.</p></div>';
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
