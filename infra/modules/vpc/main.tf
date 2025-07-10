@@ -26,6 +26,16 @@ resource "aws_subnet" "private1" { #프라이빗 subnet
   }
 }
 
+resource "aws_subnet" "private2" { #프라이빗 subnet 2
+  vpc_id            = aws_vpc.vpc1.id
+  cidr_block        = "10.0.3.0/24" # 두 번째 프라이빗 서브넷 CIDR (충돌 해결)
+  availability_zone = "ap-northeast-2b" # 서울 b 영역
+  map_public_ip_on_launch = false # 프라이빗
+  tags = {
+    Name = "${var.private_subnet_name}-2"
+  }
+} 
+
 # 인터넷 게이트웨이
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc1.id
@@ -36,7 +46,7 @@ resource "aws_internet_gateway" "igw" {
 
 # NAT용 EIP
 resource "aws_eip" "nat_eip" {
-  vpc = true
+  domain = "vpc"  # vpc = ture << 구버전 provider 명령어
   tags = {
     Name = "${var.vpc_name}-nat-eip"
   }
@@ -87,5 +97,10 @@ resource "aws_route" "private_nat_access" {
 
 resource "aws_route_table_association" "private_assoc" {
   subnet_id      = aws_subnet.private1.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_assoc2" {
+  subnet_id      = aws_subnet.private2.id
   route_table_id = aws_route_table.private.id
 } 
