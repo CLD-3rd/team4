@@ -1,4 +1,3 @@
-
 package com.memo.app.service;
 
 import java.io.IOException;
@@ -28,11 +27,6 @@ public class MemoService {
     private final S3Service s3Service;
     private final MemoListRepository memoListRepository;
     private final UserRepository userRepository;
-
-//    public MemoService(StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
-//        this.redisTemplate = redisTemplate;
-//        this.objectMapper = objectMapper;
-//    }
 
     public Memo createMemo(String text, String imageUrl, String originalFileName, int viewLimit, String title, int ttlMinutes) throws IOException {
         String id = UUID.randomUUID().toString(); // 순수 UUID 생성
@@ -111,21 +105,7 @@ public class MemoService {
 
                 // viewLimit == 1인 경우: 1회 조회 후 삭제
                 if (memo.getViewLimit() == 1) {
-                    memoList.setIsDeleted(true);	// DB에 삭제 플래그 설정
-                    memoListRepository.save(memoList);
-
-                    // Redis 메모 키 삭제
-                    redisTemplate.delete(memoId);
-
-                    // 이미지 삭제
-                    if (memo.getImageUrl() != null) {
-                        String imageKey = "image:" + id;
-                        String imageUrl = redisTemplate.opsForValue().get(imageKey);
-                        redisTemplate.delete(imageKey);
-                        if (imageUrl != null) {
-                            s3Service.delete(imageUrl);
-                        }
-                    }                    
+                    deleteMemoInternal(id, memoList, false);
                     return memo;  // 삭제되기 전의 내용을 담은 DTO 반환
                 } 
                 // viewLimit == 0인 경우: 무제한 조회
@@ -148,6 +128,56 @@ public class MemoService {
         return memoListRepository.findByUserOrderByCreatedAtDesc(currentUser);
     }
     
+    // 작성자가 직접 삭제
+    public void deleteMemo(String id) {
+        deleteMemoInternal(id, null, true);
+        MemoList memoList = memoListRepository.findById(id).orElse(null);
+
+        // DB에서 삭제
+        memoListRepository.delete(memoList);
+    }
+    
+    // 삭제
+    private void deleteMemoInternal(String id, MemoList memoList, boolean checkWriter) {
+        if (memoList == null) {
+            memoList = memoListRepository.findById(id).orElse(null);
+            if (memoList == null) {
+                throw new RuntimeException("메모를 찾을 수 없습니다.");
+            }
+        }
+
+        if (checkWriter) {
+            User currentUser = getCurrentUser();
+            if (currentUser == null) {
+                throw new RuntimeException("로그인이 필요합니다.");
+            }
+            if (!memoList.getUser().getUid().equals(currentUser.getUid())) {
+                throw new RuntimeException("삭제 권한이 없습니다.");
+            }
+        }
+
+        // DB에 삭제 플래그 설정
+        memoList.setIsDeleted(true);
+        memoListRepository.save(memoList);
+
+        // Redis 메모 키 삭제
+        redisTemplate.delete("memo:" + id);
+
+        // 이미지 삭제
+        if (memoList.getFileUrl() != null) {
+            try {
+                String imageKey = "image:" + id;
+                String imageUrl = redisTemplate.opsForValue().get(imageKey);
+                redisTemplate.delete(imageKey);
+                if (imageUrl != null) {
+                    s3Service.delete(imageUrl);
+                }
+            } catch (Exception e) {
+                System.err.println("S3 삭제 실패: " + e.getMessage());
+            }
+        }
+    }
+    
     // 현재 로그인된 사용자 정보 가져오기
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -161,4 +191,3 @@ public class MemoService {
                 .orElse(null);
     }
 }
-

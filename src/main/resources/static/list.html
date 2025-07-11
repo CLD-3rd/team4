@@ -20,6 +20,35 @@
             border-bottom: 2px solid #DBECD5;
             padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+        }
+        .btn-delete-all {
+            background-color: #e17169;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: background-color 0.2s, opacity 0.2s;
+            cursor: pointer;
+            font-weight: bold;
+
+        }
+        .btn-delete-all:hover:not(:disabled) {
+            background-color: #e17169;
+            color: white;
+        }
+        .btn-delete-all:disabled {
+            background-color: #f9e0e2;
+            color: #8a7477;
+            cursor: not-allowed;
+            opacity: 0.8;
         }
         .memo-card {
             background-color: white;
@@ -27,6 +56,7 @@
             border-radius: 0.375rem;
             transition: box-shadow 0.2s ease-in-out;
             cursor: pointer;
+            position: relative;
         }
         .memo-card:hover {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -36,6 +66,30 @@
             background-color: #f8f9fa;
             cursor: default;
         }
+        .delete-btn {
+            position: absolute;
+            top: 0.3rem;
+            right: 0.3rem;
+            background-color: transparent;
+            color: #e17169;
+            border: 1.5px solid #e17169;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 1.2rem;
+            height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            opacity: 1;
+            transition: background-color 0.2s, color 0.2s;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #e17169;
+            color: white;
+        }
         .btn-action-primary { background-color: #647259; color: white; }
         .btn-action-primary:hover { background-color: #4b5542; }
         .section-divider {
@@ -44,16 +98,14 @@
         .empty-section {
             text-align: center;
             color: #6c757d;
-            font-style: italic;
             padding: 2rem 0;
         }
-
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid" style="max-width: 960px;">
-            <a class="navbar-brand d-flex align-items-center" href="/list">
+            <a class="navbar-brand d-flex align-items-center" href="/list.html">
                 <img src="./images/pung.png" alt="Pung! Logo" class="logo-img">
             </a>
             <div class="d-flex align-items-center">
@@ -70,22 +122,31 @@
         </header>
 
         <!-- 활성 메모 -->
-		<section id="active-section" style="margin: 2rem 0;">
-            <h2 class="section-title">
-                <i class="bi bi-file-text me-2"></i>활성 메모
-                <span id="active-count" class="badge bg-success ms-2" style="background-color: #a7c869 !important;">0</span>
-            </h2>
+        <section id="active-section" style="margin: 2rem 0;">
+            <div class="section-title">
+                <div class="section-header">
+                    <i class="bi bi-file-text me-2"></i>활성 메모
+                    <span id="active-count" class="badge bg-success ms-2" style="background-color: #a7c869 !important;">0</span>
+                </div>
+                <button type="button" id="delete-active-btn" class="btn btn-delete-all" disabled>
+                    <i class="bi bi-trash me-1"></i>전체 삭제
+                </button>
+            </div>
             <div id="active-memo-container" class="row g-4">
             </div>
         </section>
 
-
         <!-- 만료된 메모 -->
         <section id="expired-section" class="section-divider">
-            <h2 class="section-title">
-                <i class="bi bi-archive me-2"></i>만료된 메모
-                <span id="expired-count" class="badge bg-secondary ms-2" style="background-color: #969696 !important;">0</span>
-            </h2>
+            <div class="section-title">
+                <div class="section-header">
+                    <i class="bi bi-archive me-2"></i>만료된 메모
+                    <span id="expired-count" class="badge bg-secondary ms-2" style="background-color: #969696 !important;">0</span>
+                </div>
+                <button type="button" id="delete-expired-btn" class="btn btn-delete-all" disabled>
+                    <i class="bi bi-trash me-1"></i>전체 삭제
+                </button>
+            </div>
             <div id="expired-memo-container" class="row g-4">
             </div>
         </section>
@@ -107,7 +168,6 @@
                 })
                 .catch(error => console.error('Error fetching username:', error));
 
-            // 메모 카드 생성
             function createMemoCard(memo, isExpired) {
                 const cardCol = document.createElement('div');
                 cardCol.className = 'col-12 col-md-6 col-lg-4';
@@ -120,8 +180,11 @@
                     tags += `<span class="badge bg-danger">만료됨</span>`;
                 }
 
-                cardCol.innerHTML = `
-                    <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" ${!isExpired ? `onclick="location.href='/view?id=${memo.memoId}'"` : ''}>
+                const cardHTML = `
+                    <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" data-memo-id="${memo.memoId}">
+                        <button class="delete-btn" type="button">
+                            <i class="bi bi-x"></i>
+                        </button>
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-truncate fw-bold">${memo.memoTitle || '제목 없음'}</h5>
                             <div class="d-flex justify-content-between text-muted small mt-auto pt-2">
@@ -133,14 +196,73 @@
                         ${memo.expireAt ? `<div class="card-footer text-muted small">만료: ${new Date(memo.expireAt).toLocaleString()}</div>` : ''}
                     </div>
                 `;
+
+                cardCol.innerHTML = cardHTML;
+
+                const card = cardCol.querySelector('.memo-card');
+                const deleteBtn = cardCol.querySelector('.delete-btn');
+
+                card.addEventListener('click', function(e) {
+                    // 삭제 버튼 클릭 시에는 메모를 열지 않음
+                    if (e.target.closest('.delete-btn')) {
+                        return;
+                    }
+                    if (!isExpired) {
+                        location.href = `/view?id=${memo.memoId}`;
+                    }
+                });
+
+                // 삭제 버튼 클릭 이벤트
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // 카드 클릭 이벤트 방지
+                    
+                    if (confirm(`"${memo.memoTitle || '제목 없음'}" 메모를 삭제하시겠습니까?`)) {
+                        deleteMemo(memo.memoId, deleteBtn);
+                    }
+                });
+
                 return cardCol;
             }
 
-            // Fetch memo list
+            // 메모 삭제 
+            function deleteMemo(memoId, deleteBtn) {
+                // 삭제 버튼 비활성화 및 로딩 표시
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                deleteBtn.style.opacity = '1';
+
+                fetch(`/api/notes/${memoId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    console.log(`삭제 응답: ${response.status} ${response.statusText}`);
+                    
+                    if (response.ok) {
+                        // 성공 시 페이지 새로고침
+                        alert('메모가 삭제되었습니다.');
+                        location.reload();
+                    } else {
+                        throw new Error(`삭제 실패: HTTP ${response.status}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('삭제 오류:', error);
+                    alert(`메모 삭제 중 오류가 발생했습니다: ${error.message}\n`);
+                    
+                    // 오류 시 버튼 복원
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = '<i class="bi bi-x"></i>';
+                    deleteBtn.style.opacity = '0';
+                });
+            }
+
             fetch('/api/notes/list')
                 .then(response => {
                     if (response.status === 401) {
-                        window.location.href = '/login';
+                        window.location.href = '/login.html';
                         return Promise.reject('User not authenticated');
                     }
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -156,13 +278,8 @@
 
                     if (!activeContainer || !expiredContainer) return;
 
-                    if (data.length === 0) {
-                        activeContainer.innerHTML = '<div class="col-12 empty-section">작성한 메모가 없습니다.</div>';
-                        expiredSection.style.display = 'none';
-                        return;
-                    }
 
-                    // 활성메모, 만료된 만료 분류
+                    // 활성메모, 만료된 메모 분류
                     const activeMemos = [];
                     const expiredMemos = [];
 
@@ -181,9 +298,11 @@
                             activeContainer.appendChild(createMemoCard(memo, false));
                         });
                         activeCount.textContent = activeMemos.length;
+                        document.getElementById('delete-active-btn').disabled = false;
                     } else {
                         activeContainer.innerHTML = '<div class="col-12 empty-section">활성 메모가 없습니다.</div>';
                         activeCount.textContent = '0';
+                        document.getElementById('delete-active-btn').disabled = true;
                     }
 
                     // 만료된 메모 렌더링
@@ -193,13 +312,11 @@
                         });
                         expiredCount.textContent = expiredMemos.length;
                         expiredSection.style.display = 'block';
+                        document.getElementById('delete-expired-btn').disabled = false;
                     } else {
                         expiredContainer.innerHTML = '<div class="col-12 empty-section">만료된 메모가 없습니다.</div>';
                         expiredCount.textContent = '0';
-                        // 만료된 메모가 없으면 섹션 자체를 숨김
-                        if (activeMemos.length > 0) {
-                            expiredSection.style.display = 'none';
-                        }
+                        document.getElementById('delete-expired-btn').disabled = true;
                     }
                 })
                 .catch(error => {
@@ -209,6 +326,92 @@
                         if(activeContainer) activeContainer.innerHTML = '<div class="col-12"><p class="text-center text-danger py-5">메모를 불러오는 중 오류가 발생했습니다.</p></div>';
                     }
                 });
+
+            // 전체 삭제
+            function deleteAllMemos(memoIds, sectionType) {
+                if (memoIds.length === 0) {
+                    alert('삭제할 메모가 없습니다.');
+                    return;
+                }
+
+                const sectionName = sectionType === 'active' ? '활성 메모' : '만료된 메모';
+                if (!confirm(`${sectionName}를 모두 삭제하시겠습니까?`)) {
+                    return;
+                }
+
+                const deleteBtn = document.getElementById(`delete-${sectionType}-btn`);
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>삭제 중...';
+
+                let deletedCount = 0;
+                let errorCount = 0;
+
+                const deletePromises = memoIds.map(memoId => {
+                    return fetch(`/api/notes/${memoId}`, { 
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            deletedCount++;
+                            return { success: true, memoId };
+                        } else {
+                            errorCount++;
+                            return { success: false, memoId, status: response.status };
+                        }
+                    })
+                    .catch(error => {
+                        errorCount++;
+                        return { success: false, memoId, error: error.message };
+                    });
+                });
+
+                Promise.all(deletePromises)
+                .then(results => {
+                    if (errorCount === 0) {
+                        alert(`${deletedCount}개의 ${sectionName}가 성공적으로 삭제되었습니다.`);
+                    } else {
+                        alert(`${deletedCount}개 성공, ${errorCount}개 실패\n\n일부 메모 삭제에 실패했습니다.`);
+                    }
+                    location.reload();
+                })
+                .catch(error => {
+                    alert(`삭제 중 오류가 발생했습니다: ${error.message}`);
+                })
+                .finally(() => {
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>전체 삭제';
+                });
+            }
+
+            // 전체 삭제 버튼 이벤트 리스너
+            document.getElementById('delete-active-btn').addEventListener('click', () => {
+                fetch('/api/notes/list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const activeMemoIds = data
+                            .filter(memo => !memo.isDeleted && !(memo.expireAt && new Date(memo.expireAt) < new Date()))
+                            .map(memo => memo.memoId);
+                        deleteAllMemos(activeMemoIds, 'active');
+                    })
+                    .catch(error => {
+                        alert('메모 목록을 가져오는 중 오류가 발생했습니다.');
+                    });
+            });
+
+            document.getElementById('delete-expired-btn').addEventListener('click', () => {
+                fetch('/api/notes/list')
+                    .then(response => response.json())
+                    .then(data => {
+                        const expiredMemoIds = data
+                            .filter(memo => memo.isDeleted || (memo.expireAt && new Date(memo.expireAt) < new Date()))
+                            .map(memo => memo.memoId);
+                        deleteAllMemos(expiredMemoIds, 'expired');
+                    })
+                    .catch(error => {
+                        alert('메모 목록을 가져오는 중 오류가 발생했습니다.');
+                    });
+            });
         });
     </script>
 </body>
