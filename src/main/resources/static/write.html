@@ -25,6 +25,32 @@
         .btn-action-secondary:hover { background-color: #70886a; }
         .btn-action-primary { background-color: #647259; color: white; }
         .btn-action-primary:hover { background-color: #4b5542; }
+        .modal-header { background-color: #DBECD5; border-bottom: 1px solid #BFDDD0; }
+        .modal-title { color: #647259; font-weight: bold; }
+        .preview-content { white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto; background-color: #f8f9fa; padding: 0.75rem; border-radius: 0.375rem; }
+        .preview-label { font-weight: 600; color: #647259; margin-bottom: 0.5rem; }
+        .file-preview-container { display: flex; align-items: flex-start; gap: 0.75rem; }
+        .file-preview-image { max-width: 120px; max-height: 120px; object-fit: cover; border-radius: 0.375rem; border: 1px solid #dee2e6; }
+        .file-info { flex: 1; min-width: 0; }
+        .file-name { font-weight: 500; margin-bottom: 0.25rem; }
+    	.file-preview-container {
+		    display: flex;
+		    align-items: center;     
+		    gap: 0.75rem;
+		    margin-bottom: 0;        
+		}
+		
+		.file-preview-image {
+		    max-width: 200px;   
+		    max-height: 200px;
+		    object-fit: cover;
+		    border-radius: 0.375rem;
+		    border: 1px solid #dee2e6;
+		    display: inline-block;
+		    vertical-align: middle;
+		    margin-bottom: 0;
+		}
+
     </style>
 </head>
 <body>
@@ -114,6 +140,60 @@
         </div>
     </div>
 
+    <!-- 저장 확인 모달 -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">
+                        <i class="bi bi-check-circle"></i> 메모 저장 확인
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-4">다음 내용으로 메모를 저장하시겠습니까?</p>
+                    
+                    <div class="mb-3">
+                        <div class="preview-label">제목</div>
+                        <div id="preview-title" class="preview-content bg-white border"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="preview-label">내용</div>
+                        <div id="preview-content" class="preview-content bg-white border"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="preview-label">설정</div>
+                        <div class="preview-content bg-white border">
+                            <div id="preview-settings"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="preview-file" class="mb-3" style="display: none;">
+					    <div class="preview-label">첨부 파일</div>
+					    <div class="preview-content bg-white border">
+					        <div class="file-preview-container">
+					            <img id="preview-image" src="" alt="첨부 이미지 미리보기" class="file-preview-image">
+					            <div class="file-info d-flex align-items-center gap-2">
+					                <i class="bi bi-paperclip"></i>
+					                <span id="preview-filename" class="fw-medium"></span>
+					            </div>
+					        </div>
+					    </div>
+					</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-action-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> 취소
+                    </button>
+                    <button type="button" class="btn btn-action-primary" id="confirm-save-btn">
+                        <i class="bi bi-check-circle"></i> 저장하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -149,35 +229,22 @@
             if (fileInput.files.length > 0) {
                 const fileName = fileInput.files[0].name;
                 fileNameDisplay.textContent = `첨부된 파일: ${fileName}`;
-                fileNameDisplay.title = fileName; // 툴팁으로 전체 파일명 보여주기
+                fileNameDisplay.title = fileName;  // 툴팁으로 전체 파일명 보여주기
             } else {
                 fileNameDisplay.textContent = '';
                 fileNameDisplay.title = '';
             }
         });
 
-        // 저장 및 링크 생성 버튼 로직
-        document.getElementById('create-memo-btn').addEventListener('click', async () => {
-            const formData = new FormData();
-            formData.append('title', document.getElementById('memo-title').value);
-            formData.append('text', document.getElementById('memo-content').value);
-            
-            const isOnceOnly = document.getElementById('once-only-check').checked;
-            formData.append('viewLimit', isOnceOnly ? '1' : '0');
-
-            const imageFile = document.getElementById('file-input').files[0];
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
-
-            // TTL 로직 추가
+        // TTL 계산 함수
+        function calculateTTL() {
             let ttlMinutes = 1; // 기본값 1분
             const activeTab = document.querySelector('.tab-pane.fade.show.active');
 
             if (activeTab.id === 'pills-preset') {
                 const activeButton = document.querySelector('.btn-preset.active');
                 if (activeButton) {
-                    const time = activeButton.dataset.time; // "5m", "1h", "1d"
+                    const time = activeButton.dataset.time;
                     const value = parseInt(time.slice(0, -1));
                     const unit = time.slice(-1);
                     if (unit === 'm') {
@@ -201,6 +268,85 @@
                     }
                 }
             }
+            return ttlMinutes;
+        }
+
+        // TTL을 사람이 읽기 쉬운 형태로 변환
+        function formatTTL(minutes) {
+            if (minutes < 60) {
+                return `${minutes}분`;
+            } else if (minutes < 1440) {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+            } else {
+                const days = Math.floor(minutes / 1440);
+                const remainingHours = Math.floor((minutes % 1440) / 60);
+                return remainingHours > 0 ? `${days}일 ${remainingHours}시간` : `${days}일`;
+            }
+        }
+
+        // 확인창 표시 함수
+        function showConfirmModal() {
+            const title = document.getElementById('memo-title').value || '제목 없음';
+            const content = document.getElementById('memo-content').value || '내용 없음';
+            const isOnceOnly = document.getElementById('once-only-check').checked;
+            const ttlMinutes = calculateTTL();
+            const fileInput = document.getElementById('file-input');
+
+            // 미리보기 내용 설정
+            document.getElementById('preview-title').textContent = title;
+            document.getElementById('preview-content').textContent = content;
+            
+            // 설정 정보 구성
+            let settingsText = `만료 시간: ${formatTTL(ttlMinutes)}\n`;
+            settingsText += `열람 제한: ${isOnceOnly ? '1회 열람 후 삭제' : '무제한'}`;
+            document.getElementById('preview-settings').textContent = settingsText;
+
+            // 첨부 파일 정보
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                document.getElementById('preview-filename').textContent = file.name;
+                
+                // 이미지 파일인 경우 미리보기 표시
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewImage = document.getElementById('preview-image');
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // 이미지가 아닌 경우 미리보기 숨김
+                    document.getElementById('preview-image').style.display = 'none';
+                }
+                
+                document.getElementById('preview-file').style.display = 'block';
+            } else {
+                document.getElementById('preview-file').style.display = 'none';
+            }
+
+            // 모달 표시
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+        }
+
+        // 실제 저장 함수
+        async function saveMemo() {
+            const formData = new FormData();
+            formData.append('title', document.getElementById('memo-title').value);
+            formData.append('text', document.getElementById('memo-content').value);
+            
+            const isOnceOnly = document.getElementById('once-only-check').checked;
+            formData.append('viewLimit', isOnceOnly ? '1' : '0');
+
+            const imageFile = document.getElementById('file-input').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            const ttlMinutes = calculateTTL();
             formData.append('ttlMinutes', ttlMinutes);
 
             try {
@@ -218,6 +364,19 @@
                 console.error('Failed to create memo:', error);
                 alert(`메모 생성에 실패했습니다: ${error.message}`);
             }
+        }
+
+        // 저장 버튼 클릭 시 확인창 표시
+        document.getElementById('create-memo-btn').addEventListener('click', showConfirmModal);
+
+        // 확인창에서 저장 확인 시 실제 저장
+        document.getElementById('confirm-save-btn').addEventListener('click', () => {
+            // 모달 닫기
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            modal.hide();
+            
+            // 저장 
+            saveMemo();
         });
     </script>
 </body>
