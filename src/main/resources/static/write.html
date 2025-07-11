@@ -128,7 +128,12 @@
         <input type="file" id="file-input" class="d-none">
 
         <!-- 파일명 표시 영역 (최소 높이 설정) -->
-        <div id="file-name-display" class="text-muted mb-2" style="min-height: 1.5rem;"></div>
+        <div id="file-name-display" class="text-muted mb-2 d-flex align-items-center gap-2" style="min-height: 1.5rem;">
+		    <button type="button" id="remove-file-btn" class="btn btn-sm btn-outline-danger d-none" , style="width: 1rem; height: 1rem; padding: 0; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; text-align: center;">
+		        <i class="bi bi-x"></i>
+		    </button>
+		    <span id="file-name-text"></span>
+		</div>
 
         <div class="d-flex justify-content-between align-items-center pt-4">
             <button type="button" class="btn btn-action-secondary" onclick="document.getElementById('file-input').click();">
@@ -225,16 +230,29 @@
         // 파일 첨부 시 파일 이름 표시 로직
         const fileInput = document.getElementById('file-input');
         const fileNameDisplay = document.getElementById('file-name-display');
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                const fileName = fileInput.files[0].name;
-                fileNameDisplay.textContent = `첨부된 파일: ${fileName}`;
-                fileNameDisplay.title = fileName;  // 툴팁으로 전체 파일명 보여주기
-            } else {
-                fileNameDisplay.textContent = '';
-                fileNameDisplay.title = '';
-            }
-        });
+        const fileNameText = document.getElementById('file-name-text');
+		const removeFileBtn = document.getElementById('remove-file-btn');
+		
+		fileInput.addEventListener('change', () => {
+		    if (fileInput.files.length > 0) {
+		        const fileName = fileInput.files[0].name;
+		        fileNameText.textContent = `첨부된 파일: ${fileName}`;
+		        fileNameText.title = fileName;
+		        removeFileBtn.classList.remove('d-none'); // X 버튼 표시
+		    } else {
+		        fileNameText.textContent = '';
+		        fileNameText.title = '';
+		        removeFileBtn.classList.add('d-none'); // X 버튼 숨김
+		    }
+		});
+		
+		// 파일 제거 버튼 클릭 이벤트 추가
+		removeFileBtn.addEventListener('click', () => {
+		    fileInput.value = '';
+		    fileNameText.textContent = '';
+		    fileNameText.title = '';
+		    removeFileBtn.classList.add('d-none');
+		});
 
         // TTL 계산 함수
         function calculateTTL() {
