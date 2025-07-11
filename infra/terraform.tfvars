@@ -1,6 +1,9 @@
 region  = "ap-northeast-2"
-profile = "default"
+profile = "base-user"
 project = "memo"
+
+# IAM Admin User ARN
+admin_user_arn = "arn:aws:iam::727646470302:user/lion3team04"
 
 # EKS
 cluster_name    = "memo-eks-cluster"

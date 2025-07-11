@@ -25,3 +25,34 @@ module "eks" {
     Project = var.project
   }
 }
+
+# EKS 클러스터 보안 그룹에 외부 접근 규칙 추가
+resource "aws_security_group_rule" "eks_cluster_external_access" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = module.eks.cluster_security_group_id
+  description       = "External access to EKS cluster API"
+}
+
+resource "aws_security_group_rule" "eks_cluster_external_access_6443" {
+  type              = "ingress"
+  from_port         = 6443
+  to_port           = 6443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = module.eks.cluster_security_group_id
+  description       = "External access to EKS cluster API (6443)"
+}
+
+resource "aws_security_group_rule" "eks_cluster_external_access_10250" {
+  type              = "ingress"
+  from_port         = 10250
+  to_port           = 10250
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = module.eks.cluster_security_group_id
+  description       = "External access to EKS kubelet API"
+}

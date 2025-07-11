@@ -9,6 +9,11 @@ variable "profile" {
   type        = string
 }
 
+variable "admin_user_arn" {
+  description = "관리자 IAM 사용자의 ARN (예: arn:aws:iam::123456789012:user/your-username)"
+  type        = string
+}
+
 variable "project" {
   description = "프로젝트 명"
   type        = string
