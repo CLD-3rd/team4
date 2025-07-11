@@ -25,6 +25,15 @@
         .btn-action-primary { background-color: #647259; color: white; }
         .btn-action-primary:hover { background-color: #4b5542; }
         .memo-content-display { min-height: 300px; line-height: 1.6; white-space: pre-wrap; }
+        .bordered {
+           background: #e8f5e8;
+           border: 2px solid #4caf50;
+           padding: 10px 16px;
+           border-radius: 8px;
+           font-size: 14px;
+           color: #2e7d32;
+           margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -35,7 +44,7 @@
             </a>
             <div class="d-flex align-items-center">
                 <span id="username-display" class="nav-link me-3"></span>
-                <a href="/logout" class="btn btn-link"><i class="bi bi-box-arrow-right fs-4"></i></a>
+                <a href="/logout" id="logout-btn" class="btn btn-link d-none"><i class="bibi-box-arrow-right fs-4"></i></a>    
             </div>
         </div>
     </nav>
@@ -48,20 +57,10 @@
         <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
 
         <div id="memo-display" class="d-none">
-            <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200 mb-4">
-                <div class="d-flex align-items-center gap-4 mb-3 text-sm" style="color: #89A080;">
-                    <div class="d-flex align-items-center gap-1">
-                        <i class="bi bi-clock"></i>
-                        <span id="created-at"></span>
-                    </div>
-                    <div class="d-flex align-items-center gap-1">
-                        <i class="bi bi-eye"></i>
-                        <span id="view-count"></span>
-                    </div>
-                </div>
+            <div class="mb-4">
                 
-                <div id="expires-at-box" class="p-3 rounded-md memo-info-box mb-3 d-none">
-                    <p class="text-sm mb-0">
+                <div id="expires-at-box" class="bordered d-none">
+                    <p class="mb-0">
                         만료일: <span id="expires-at"></span>
                     </p>
                 </div>
@@ -111,8 +110,6 @@
     <script>
         const memoDisplayDiv = document.getElementById('memo-display');
         const errorMessageDiv = document.getElementById('error-message');
-        const createdAtSpan = document.getElementById('created-at');
-        const viewCountSpan = document.getElementById('view-count');
         const expiresAtBox = document.getElementById('expires-at-box');
         const expiresAtSpan = document.getElementById('expires-at');
         const onceOnlyWarning = document.getElementById('once-only-warning');
@@ -235,8 +232,10 @@
                 })
                 .then(data => {
                     const usernameDisplay = document.getElementById('username-display');
+                    const logoutBtn = document.getElementById('logout-btn');
                     if (usernameDisplay && data.username) {
                         usernameDisplay.textContent = `${data.username}님`;
+                        logoutBtn.classList.remove('d-none');
                     }
                 })
                 .catch(error => console.error('Error fetching username:', error));

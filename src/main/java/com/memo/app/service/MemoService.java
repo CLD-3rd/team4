@@ -151,13 +151,14 @@ public class MemoService {
     // 현재 로그인된 사용자 정보 가져오기
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 인증 정보가 없거나 인증되지 않은 경우
-        if (authentication == null || !authentication.isAuthenticated()) {
+        // 인증 정보가 없거나, 인증되지 않았거나, 익명 사용자인 경우 null 반환
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
             return null;
         }
         String currentUserId = authentication.getName();
+        // 사용자를 찾지 못했을 때 예외를 던지는 대신 null을 반환
         return userRepository.findByUid(currentUserId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + currentUserId));
+                .orElse(null);
     }
 }
 
