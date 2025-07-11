@@ -6,6 +6,7 @@ import lombok.Data;
 public class Memo {
     private String id;
     private String text;
+    private String title;
     private long ttl;
     private String imageUrl;
     private String fileName;

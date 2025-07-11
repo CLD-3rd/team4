@@ -41,6 +41,7 @@ public class MemoService {
         Memo memo = new Memo();
         memo.setId(id); // 클라이언트에게는 순수 UUID를 반환
         memo.setText(text);
+        memo.setTitle(title);
         memo.setViewLimit(viewLimit);
         
         Duration ttl = Duration.ofMinutes(ttlMinutes);
