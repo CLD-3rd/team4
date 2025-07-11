@@ -13,6 +13,14 @@
         .nav-link, .btn-link { color: #647259; font-weight: 500; }
         .nav-link:hover, .btn-link:hover { color: #4b5542; }
         .main-title { color: #636D5B; font-weight: bold; }
+        .section-title { 
+            color: #647259; 
+            font-weight: 600; 
+            font-size: 1.25rem;
+            border-bottom: 2px solid #DBECD5;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
         .memo-card {
             background-color: white;
             border: 1px solid #e9ecef;
@@ -30,6 +38,16 @@
         }
         .btn-action-primary { background-color: #647259; color: white; }
         .btn-action-primary:hover { background-color: #4b5542; }
+        .section-divider {
+            margin: 3rem 0 2rem 0;
+        }
+        .empty-section {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 2rem 0;
+        }
+
     </style>
 </head>
 <body>
@@ -51,9 +69,26 @@
             <a href="/write" class="btn btn-action-primary">새 메모 작성</a>
         </header>
 
-        <div id="memo-list-container" class="row g-4">
-            <!-- 메모 목록이 여기에 동적으로 추가됩니다. -->
-        </div>
+        <!-- 활성 메모 -->
+		<section id="active-section" style="margin: 8rem 0;">
+            <h2 class="section-title">
+                <i class="bi bi-file-text me-2"></i>활성 메모
+                <span id="active-count" class="badge bg-success ms-2" style="background-color: #a7c869 !important;">0</span>
+            </h2>
+            <div id="active-memo-container" class="row g-4">
+            </div>
+        </section>
+
+
+        <!-- 만료된 메모 -->
+        <section id="expired-section" class="section-divider">
+            <h2 class="section-title">
+                <i class="bi bi-archive me-2"></i>만료된 메모
+                <span id="expired-count" class="badge bg-secondary ms-2" style="background-color: #969696 !important;">0</span>
+            </h2>
+            <div id="expired-memo-container" class="row g-4">
+            </div>
+        </section>
     </div>
 
     <script>
@@ -72,6 +107,35 @@
                 })
                 .catch(error => console.error('Error fetching username:', error));
 
+            // 메모 카드 생성
+            function createMemoCard(memo, isExpired) {
+                const cardCol = document.createElement('div');
+                cardCol.className = 'col-12 col-md-6 col-lg-4';
+
+                let tags = '';
+                if (memo.viewLimit === 1) {
+                    tags += `<span class="badge bg-warning text-dark me-2">1회 열람</span>`;
+                }
+                if (isExpired) {
+                    tags += `<span class="badge bg-danger">만료됨</span>`;
+                }
+
+                cardCol.innerHTML = `
+                    <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" ${!isExpired ? `onclick="location.href='/view?id=${memo.memoId}'"` : ''}>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate fw-bold">${memo.memoTitle || '제목 없음'}</h5>
+                            <div class="d-flex justify-content-between text-muted small mt-auto pt-2">
+                                <span>조회: ${memo.viewCount}</span>
+                                <span>${new Date(memo.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div class="mt-2">${tags}</div>
+                        </div>
+                        ${memo.expireAt ? `<div class="card-footer text-muted small">만료: ${new Date(memo.expireAt).toLocaleString()}</div>` : ''}
+                    </div>
+                `;
+                return cardCol;
+            }
+
             // Fetch memo list
             fetch('/api/notes/list')
                 .then(response => {
@@ -83,48 +147,66 @@
                     return response.json();
                 })
                 .then(data => {
-                    const container = document.getElementById('memo-list-container');
-                    if (!container) return;
+                    const activeContainer = document.getElementById('active-memo-container');
+                    const expiredContainer = document.getElementById('expired-memo-container');
+                    const activeSection = document.getElementById('active-section');
+                    const expiredSection = document.getElementById('expired-section');
+                    const activeCount = document.getElementById('active-count');
+                    const expiredCount = document.getElementById('expired-count');
+
+                    if (!activeContainer || !expiredContainer) return;
 
                     if (data.length === 0) {
-                        container.innerHTML = '<div class="col-12"><p class="text-center text-muted py-5">작성한 메모가 없습니다.</p></div>';
+                        activeContainer.innerHTML = '<div class="col-12 empty-section">작성한 메모가 없습니다.</div>';
+                        expiredSection.style.display = 'none';
                         return;
                     }
 
+                    // 활성메모, 만료된 만료 분류
+                    const activeMemos = [];
+                    const expiredMemos = [];
+
                     data.forEach(memo => {
                         const isExpired = memo.isDeleted || (memo.expireAt && new Date(memo.expireAt) < new Date());
-                        const cardCol = document.createElement('div');
-                        cardCol.className = 'col-12 col-md-6 col-lg-4';
-
-                        let tags = '';
-                        if (memo.viewLimit === 1) {
-                            tags += `<span class="badge bg-warning text-dark me-2">1회 열람</span>`;
-                        }
                         if (isExpired) {
-                            tags += `<span class="badge bg-danger">만료됨</span>`;
+                            expiredMemos.push(memo);
+                        } else {
+                            activeMemos.push(memo);
                         }
-
-                        cardCol.innerHTML = `
-                            <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" ${!isExpired ? `onclick="location.href='/view?id=${memo.memoId}'"` : ''}>
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title text-truncate fw-bold">${memo.memoTitle || '제목 없음'}</h5>
-                                    <div class="d-flex justify-content-between text-muted small mt-auto pt-2">
-                                        <span>조회: ${memo.viewCount}</span>
-                                        <span>${new Date(memo.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                    <div class="mt-2">${tags}</div>
-                                </div>
-                                ${memo.expireAt ? `<div class="card-footer text-muted small">만료: ${new Date(memo.expireAt).toLocaleString()}</div>` : ''}
-                            </div>
-                        `;
-                        container.appendChild(cardCol);
                     });
+
+                    // 활성 메모 렌더링
+                    if (activeMemos.length > 0) {
+                        activeMemos.forEach(memo => {
+                            activeContainer.appendChild(createMemoCard(memo, false));
+                        });
+                        activeCount.textContent = activeMemos.length;
+                    } else {
+                        activeContainer.innerHTML = '<div class="col-12 empty-section">활성 메모가 없습니다.</div>';
+                        activeCount.textContent = '0';
+                    }
+
+                    // 만료된 메모 렌더링
+                    if (expiredMemos.length > 0) {
+                        expiredMemos.forEach(memo => {
+                            expiredContainer.appendChild(createMemoCard(memo, true));
+                        });
+                        expiredCount.textContent = expiredMemos.length;
+                        expiredSection.style.display = 'block';
+                    } else {
+                        expiredContainer.innerHTML = '<div class="col-12 empty-section">만료된 메모가 없습니다.</div>';
+                        expiredCount.textContent = '0';
+                        // 만료된 메모가 없으면 섹션 자체를 숨김
+                        if (activeMemos.length > 0) {
+                            expiredSection.style.display = 'none';
+                        }
+                    }
                 })
                 .catch(error => {
                     if (error.message !== 'User not authenticated') {
                         console.error('Error fetching memos:', error);
-                        const container = document.getElementById('memo-list-container');
-                        if(container) container.innerHTML = '<div class="col-12"><p class="text-center text-danger py-5">메모를 불러오는 중 오류가 발생했습니다.</p></div>';
+                        const activeContainer = document.getElementById('active-memo-container');
+                        if(activeContainer) activeContainer.innerHTML = '<div class="col-12"><p class="text-center text-danger py-5">메모를 불러오는 중 오류가 발생했습니다.</p></div>';
                     }
                 });
         });
