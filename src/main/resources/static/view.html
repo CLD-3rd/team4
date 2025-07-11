@@ -116,6 +116,7 @@
         const expiresAtBox = document.getElementById('expires-at-box');
         const expiresAtSpan = document.getElementById('expires-at');
         const onceOnlyWarning = document.getElementById('once-only-warning');
+        const remainingViewsSpan = document.getElementById('remaining-views');
         const memoTitleDisplay = document.getElementById('memo-title-display');
         const memoContentDisplay = document.getElementById('memo-content-display');
         const memoImageDisplay = document.getElementById('memo-image-display');
@@ -169,6 +170,9 @@
 
                 if (memo.viewLimit === 1) {
                     onceOnlyWarning.classList.remove('d-none');
+                    // 남은 조회 횟수 계산: viewLimit - viewCount
+                    const remainingViews = memo.viewLimit - memo.viewCount;
+                    remainingViewsSpan.textContent = remainingViews;
                 }
 
                 memoTitleDisplay.textContent = memo.title || '제목 없음';
