@@ -53,7 +53,7 @@
 <body>
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid" style="max-width: 960px;">
-            <a class="navbar-brand d-flex align-items-center" href="/list.html">
+            <a class="navbar-brand d-flex align-items-center" href="/list">
                 <img src="./images/pung.png" alt="Pung! Logo" class="logo-img">
             </a>
             <div class="d-flex align-items-center">
@@ -140,7 +140,7 @@
             fetch('/api/notes/list')
                 .then(response => {
                     if (response.status === 401) {
-                        window.location.href = '/login.html';
+                        window.location.href = '/login';
                         return Promise.reject('User not authenticated');
                     }
                     if (!response.ok) throw new Error('Network response was not ok');
