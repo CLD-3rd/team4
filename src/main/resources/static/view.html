@@ -96,6 +96,9 @@
                     <button type="button" class="btn btn-action-secondary" id="download-btn">
                         <i class="bi bi-download"></i> 다운로드
                     </button>
+                    <button type="button" class="btn btn-action-secondary" id="share-btn">
+                        <i class="bi bi-share"></i> 링크공유
+                    </button>
                 </div>
                 <a href="/write" class="btn btn-action-primary">
                     새 메모 작성
@@ -120,6 +123,7 @@
         const copyBtn = document.getElementById('copy-btn');
         const copyBtnText = document.getElementById('copy-btn-text');
         const downloadBtn = document.getElementById('download-btn');
+        const shareBtn = document.getElementById('share-btn');
 
         function showError(message) {
             errorMessageDiv.textContent = message;
@@ -204,6 +208,20 @@
             document.body.removeChild(element);
         });
 
+		shareBtn.addEventListener('click', () => {
+		    const currentUrl = window.location.href;
+		    navigator.clipboard.writeText(currentUrl)
+		        .then(() => {
+		            shareBtn.innerHTML = `<i class="bi bi-check2"></i> 링크 복사됨!`;
+		            setTimeout(() => {
+		                shareBtn.innerHTML = `<i class="bi bi-share-fill"></i> 공유`;
+		            }, 2000);
+		        })
+		        .catch(err => {
+		            alert('링크 복사 실패: ' + err);
+		        });
+		});
+		
         document.addEventListener('DOMContentLoaded', () => {
             // Fetch username
             fetch('/api/auth/username')
