@@ -32,7 +32,7 @@ public class MemoController {
     public ResponseEntity<Memo> createMemo(
             @RequestPart("text") String text,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "viewLimit", required = false) int viewLimit,
+            @RequestParam(value = "viewLimit", required = false, defaultValue = "0") int viewLimit,
             @RequestParam(value = "title", defaultValue = "제목 없음") String title,
             @RequestParam(value = "ttlMinutes", defaultValue = "1") int ttlMinutes
     ) throws IOException {

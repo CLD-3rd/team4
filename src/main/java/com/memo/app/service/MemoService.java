@@ -92,33 +92,49 @@ public class MemoService {
         // DB에서 MemoList 정보 가져오기
         MemoList memoList = memoListRepository.findById(id).orElse(null);
         if (memoList != null) {
-            int newCount = memoList.getViewCount() + 1;
-            memoList.setViewCount(newCount);
-            memo.setViewCount(newCount); // DTO에도 반영
-            memo.setFileName(memoList.getOriginalFileName()); // DB의 파일명을 DTO에 설정
-
-            // viewLimit == 1 && viewCount >= 1 (1회열람 허용된 메모를 1회이상 조회시)
-            if (memo.getViewLimit() == 1 && newCount >= 1) {
-                memoList.setIsDeleted(true); // DB에 삭제 플래그 설정
+            // 현재 로그인된 사용자 정보 가져오기 
+            User currentUser = getCurrentUser();
+            
+            // 메모 작성자와 현재 사용자가 같은지 확인
+            boolean isWriter = currentUser!=null&&memoList.getUser().getUid().equals(currentUser.getUid());
+            
+            memo.setViewCount(memoList.getViewCount());
+            memo.setFileName(memoList.getOriginalFileName());
+            
+            // 작성자가 아닌 경우에만(로그인이 안되어있거나 다른 user) viewCount 증가
+            if (!isWriter) {
+                int newCount = memoList.getViewCount() + 1;
+                memoList.setViewCount(newCount);
+                memo.setViewCount(newCount);
                 memoListRepository.save(memoList); // DB 업데이트
 
-                // Redis 메모 키 삭제
-                redisTemplate.delete(memoId);
+                // viewLimit == 1인 경우: 1회 조회 후 삭제
+                if (memo.getViewLimit() == 1) {
+                    memoList.setIsDeleted(true);	// DB에 삭제 플래그 설정
+                    memoListRepository.save(memoList);
 
-                // 이미지 삭제
-                if (memo.getImageUrl() != null) {
-                    String imageKey = "image:" + id;
-                    String imageUrl = redisTemplate.opsForValue().get(imageKey);
-                    redisTemplate.delete(imageKey);
-                    if (imageUrl != null) {
-                        s3Service.delete(imageUrl);
-                    }
+                    // Redis 메모 키 삭제
+                    redisTemplate.delete(memoId);
+
+                    // 이미지 삭제
+                    if (memo.getImageUrl() != null) {
+                        String imageKey = "image:" + id;
+                        String imageUrl = redisTemplate.opsForValue().get(imageKey);
+                        redisTemplate.delete(imageKey);
+                        if (imageUrl != null) {
+                            s3Service.delete(imageUrl);
+                        }
+                    }                    
+                    return memo;  // 삭제되기 전의 내용을 담은 DTO 반환
+                } 
+                // viewLimit == 0인 경우: 무제한 조회
+                else {
+                    memoListRepository.save(memoList);
+                    redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo), Duration.ofSeconds(ttl));
+                    return memo;
                 }
-                return memo; // 삭제되기 전의 내용을 담은 DTO 반환
             } else {
-                // viewCount만 DB와 Redis에 업데이트
-                memoListRepository.save(memoList);
-                redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo), Duration.ofSeconds(ttl));
+                // 작성자 본인이 조회하는 경우 - viewCount 증가하지 않음
                 return memo;
             }
         }
@@ -127,10 +143,20 @@ public class MemoService {
     }
 
     public java.util.List<com.memo.app.entity.MemoList> getMyMemos() {
+        User currentUser = getCurrentUser();
+        return memoListRepository.findByUserOrderByCreatedAtDesc(currentUser);
+    }
+    
+    // 현재 로그인된 사용자 정보 가져오기
+    private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 인증 정보가 없거나 인증되지 않은 경우
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
         String currentUserId = authentication.getName();
-        User user = userRepository.findByUid(currentUserId).orElseThrow(() -> new RuntimeException("User not found"));
-        return memoListRepository.findByUserOrderByCreatedAtDesc(user);
+        return userRepository.findByUid(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + currentUserId));
     }
 }
 

@@ -35,6 +35,7 @@ public class S3Service {
                 )
         );
 
+
         // 업로드한 S3 객체의 URL 반환
         return s3Client.utilities()
                 .getUrl(builder -> builder.bucket(bucketName).key(key))
