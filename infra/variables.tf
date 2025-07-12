@@ -32,16 +32,7 @@ variable "cluster_version" {
 }
 
 
-# S3
-variable "bucket_name" {
-  type        = string
-  description = "S3 버킷 이름"
-}
 
-variable "environment" {
-  type        = string
-  description = "환경 이름 (dev, prod 등)"
-}
 
 
 # RDS
@@ -62,12 +53,18 @@ variable "db_password" {
   sensitive   = true
 }
 
+# S3
+variable "bucket_name" {
+  description = "S3 버킷 이름"
+  type        = string
+}
+
 # Tags
 variable "tags" {
   type        = map(string)
   description = "리소스에 적용할 태그"
   default = {
     Environment = "dev"
-    Project     = "pung"
+    Project     = "memo"
   }
 }

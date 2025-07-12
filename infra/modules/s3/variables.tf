@@ -3,12 +3,17 @@ variable "bucket_name" {
   type        = string
 }
 
-variable "environment" {
-  description = "환경 이름 (ex: dev, prod)"
-  type        = string
+variable "enable_bucket_policy" {
+  description = "S3 버킷 정책 활성화 여부"
+  type        = bool
+  default     = false
 }
 
-variable "project" {
-  description = "프로젝트 이름"
-  type        = string
-}
+variable "tags" {
+  description = "리소스에 적용할 태그"
+  type        = map(string)
+  default = {
+    Environment = "dev"
+    Project     = "memo"
+  }
+} 

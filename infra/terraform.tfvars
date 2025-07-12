@@ -9,11 +9,8 @@ admin_user_arn = "arn:aws:iam::727646470302:user/lion3team04"
 cluster_name    = "memo-eks-cluster"
 cluster_version = "1.29"
 
-
 # S3
 bucket_name = "memo-image-bucket"
-environment = "dev"
-
 
 # RDS
 db_name = "memodb"

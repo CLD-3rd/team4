@@ -1,6 +1,8 @@
 ### VPC 설정 모듈 (요약:1VPC 1Private 1Public ) - 김재신
 resource "aws_vpc" "vpc1" { # vpc 생성
-  cidr_block = var.vpc_cidr
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
   tags = {
     Name = var.vpc_name
   }
@@ -9,30 +11,50 @@ resource "aws_vpc" "vpc1" { # vpc 생성
 resource "aws_subnet" "public1" { # 퍼블릭 subnet
   vpc_id                  = aws_vpc.vpc1.id
   cidr_block              = var.public_subnet_cidr
-  availability_zone       = var.az # 서울 a 영역
+  availability_zone       = "ap-northeast-2a" # 서울 a 영역
   map_public_ip_on_launch = true   # 퍼블릭
   tags = {
     Name = var.public_subnet_name
   }
 }
 
-resource "aws_subnet" "private1" { #프라이빗 subnet
+resource "aws_subnet" "private1" { #프라이빗 subnet in ap-northeast-2a
   vpc_id                  = aws_vpc.vpc1.id
   cidr_block              = var.private_subnet_cidr
-  availability_zone       = var.az # 서울 a 영역
+  availability_zone       = "ap-northeast-2a" # 서울 a 영역
   map_public_ip_on_launch = false  # 프라이빗
   tags = {
-    Name = var.private_subnet_name
+    Name = "${var.private_subnet_name}-a"
   }
 }
 
-resource "aws_subnet" "private2" { #프라이빗 subnet 2
+resource "aws_subnet" "private2" { #프라이빗 subnet in ap-northeast-2b
   vpc_id            = aws_vpc.vpc1.id
-  cidr_block        = "10.0.3.0/24" # 두 번째 프라이빗 서브넷 CIDR (충돌 해결)
+  cidr_block        = "10.0.3.0/24" # 두 번째 프라이빗 서브넷 CIDR
   availability_zone = "ap-northeast-2b" # 서울 b 영역
   map_public_ip_on_launch = false # 프라이빗
   tags = {
-    Name = "${var.private_subnet_name}-2"
+    Name = "${var.private_subnet_name}-b"
+  }
+}
+
+resource "aws_subnet" "private3" { #프라이빗 subnet in ap-northeast-2c
+  vpc_id            = aws_vpc.vpc1.id
+  cidr_block        = "10.0.4.0/24" # 세 번째 프라이빗 서브넷 CIDR
+  availability_zone = "ap-northeast-2c" # 서울 c 영역
+  map_public_ip_on_launch = false # 프라이빗
+  tags = {
+    Name = "${var.private_subnet_name}-c"
+  }
+}
+
+resource "aws_subnet" "private4" { #프라이빗 subnet in ap-northeast-2d
+  vpc_id            = aws_vpc.vpc1.id
+  cidr_block        = "10.0.5.0/24" # 네 번째 프라이빗 서브넷 CIDR
+  availability_zone = "ap-northeast-2d" # 서울 d 영역
+  map_public_ip_on_launch = false # 프라이빗
+  tags = {
+    Name = "${var.private_subnet_name}-d"
   }
 } 
 
@@ -103,4 +125,29 @@ resource "aws_route_table_association" "private_assoc" {
 resource "aws_route_table_association" "private_assoc2" {
   subnet_id      = aws_subnet.private2.id
   route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_assoc3" {
+  subnet_id      = aws_subnet.private3.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_assoc4" {
+  subnet_id      = aws_subnet.private4.id
+  route_table_id = aws_route_table.private.id
 } 
+
+# DNS 설정 확인 및 적용
+resource "aws_vpc_dhcp_options" "dns" {
+  domain_name = "ap-northeast-2.compute.internal"
+  domain_name_servers = ["AmazonProvidedDNS"]
+
+  tags = {
+    Name = "${var.vpc_name}-dns"
+  }
+}
+
+resource "aws_vpc_dhcp_options_association" "dns" {
+  vpc_id          = aws_vpc.vpc1.id
+  dhcp_options_id = aws_vpc_dhcp_options.dns.id
+}

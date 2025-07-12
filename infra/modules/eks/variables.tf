@@ -27,3 +27,8 @@ variable "project" { # 상위 모듈 변수명 통일 - 김재신
   type        = string
   description = "프로젝트명"
 }
+
+variable "admin_user_arn" {
+  type        = string
+  description = "EKS 관리자 사용자 ARN"
+}
