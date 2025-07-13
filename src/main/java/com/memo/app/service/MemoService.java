@@ -38,17 +38,20 @@ public class MemoService {
         memo.setTitle(title);
         memo.setViewLimit(viewLimit);
         
-        Duration ttl = Duration.ofMinutes(ttlMinutes);
-        memo.setTtl(ttl.toSeconds());
+        if (ttlMinutes > 0) {
+            Duration ttl = Duration.ofMinutes(ttlMinutes);
+            memo.setTtl(ttl.toSeconds());
+            redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo), ttl);
+        } else {
+            memo.setTtl(0L); // 0 또는 음수일 경우 무제한
+            redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo));
+        }
 
         if (imageUrl != null) {
             memo.setImageUrl(imageUrl);
             memo.setFileName(originalFileName);
             redisTemplate.opsForValue().set("image:" + id, imageUrl);
         }
-
-        String memoJson = objectMapper.writeValueAsString(memo);
-        redisTemplate.opsForValue().set(memoId, memoJson, ttl);
 
         // DB에 저장
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -82,7 +85,7 @@ public class MemoService {
 
         Memo memo = objectMapper.readValue(memoJson, Memo.class);
         Long ttl = redisTemplate.getExpire(memoId);
-        memo.setTtl(ttl);
+        memo.setTtl(ttl != null ? ttl : 0L);
 
         // DB에서 MemoList 정보 가져오기
         MemoList memoList = memoListRepository.findById(id).orElse(null);
@@ -91,7 +94,7 @@ public class MemoService {
             User currentUser = getCurrentUser();
             
             // 메모 작성자와 현재 사용자가 같은지 확인
-            boolean isWriter = currentUser!=null&&memoList.getUser().getUid().equals(currentUser.getUid());
+            boolean isWriter = currentUser != null && memoList.getUser().getUid().equals(currentUser.getUid());
             
             memo.setViewCount(memoList.getViewCount());
             memo.setFileName(memoList.getOriginalFileName());
@@ -101,17 +104,19 @@ public class MemoService {
                 int newCount = memoList.getViewCount() + 1;
                 memoList.setViewCount(newCount);
                 memo.setViewCount(newCount);
-                memoListRepository.save(memoList); // DB 업데이트
-
-                // viewLimit == 1인 경우: 1회 조회 후 삭제
-                if (memo.getViewLimit() == 1) {
+                
+                // viewLimit이 0보다 크고, 조회수가 제한 횟수 이상이면 삭제
+                if (memo.getViewLimit() > 0 && newCount >= memo.getViewLimit()) {
                     deleteMemoInternal(id, memoList, false);
                     return memo;  // 삭제되기 전의 내용을 담은 DTO 반환
-                } 
-                // viewLimit == 0인 경우: 무제한 조회
-                else {
+                } else {
                     memoListRepository.save(memoList);
-                    redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo), Duration.ofSeconds(ttl));
+                    // TTL이 있는 경우에만 다시 설정
+                    if (ttl != null && ttl > 0) {
+                        redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo), Duration.ofSeconds(ttl));
+                    } else {
+                        redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo));
+                    }
                     return memo;
                 }
             } else {
@@ -131,10 +136,6 @@ public class MemoService {
     // 작성자가 직접 삭제
     public void deleteMemo(String id) {
         deleteMemoInternal(id, null, true);
-        MemoList memoList = memoListRepository.findById(id).orElse(null);
-
-        // DB에서 삭제
-        memoListRepository.delete(memoList);
     }
     
     // 삭제
@@ -142,7 +143,9 @@ public class MemoService {
         if (memoList == null) {
             memoList = memoListRepository.findById(id).orElse(null);
             if (memoList == null) {
-                throw new RuntimeException("메모를 찾을 수 없습니다.");
+                // 이미 삭제되었거나 없는 메모일 수 있으므로 오류를 던지는 대신 로그를 남기고 종료
+                System.out.println("삭제할 메모를 찾을 수 없습니다: " + id);
+                return;
             }
         }
 
@@ -164,16 +167,13 @@ public class MemoService {
         redisTemplate.delete("memo:" + id);
 
         // 이미지 삭제
-        if (memoList.getFileUrl() != null) {
+        if (memoList.getFileUrl() != null && !memoList.getFileUrl().isEmpty()) {
             try {
-                String imageKey = "image:" + id;
-                String imageUrl = redisTemplate.opsForValue().get(imageKey);
-                redisTemplate.delete(imageKey);
-                if (imageUrl != null) {
-                    s3Service.delete(imageUrl);
-                }
+                s3Service.delete(memoList.getFileUrl());
+                // Redis에 별도로 저장된 이미지 URL도 삭제
+                redisTemplate.delete("image:" + id);
             } catch (Exception e) {
-                System.err.println("S3 삭제 실패: " + e.getMessage());
+                System.err.println("S3 또는 Redis 이미지 키 삭제 실패: " + e.getMessage());
             }
         }
     }

@@ -173,8 +173,8 @@
                 cardCol.className = 'col-12 col-md-6 col-lg-4';
 
                 let tags = '';
-                if (memo.viewLimit === 1) {
-                    tags += `<span class="badge bg-warning text-dark me-2">1회 열람</span>`;
+                if (memo.viewLimit > 0) {
+                    tags += `<span class="badge bg-warning text-dark me-2">열람 제한 (${memo.viewCount}/${memo.viewLimit})</span>`;
                 }
                 if (isExpired) {
                     tags += `<span class="badge bg-danger">만료됨</span>`;

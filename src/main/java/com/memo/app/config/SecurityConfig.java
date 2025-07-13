@@ -30,7 +30,9 @@ public class SecurityConfig {
                     // 메모 조회 페이지 (forward 경로와 실제 파일 경로 모두 포함)
                     "/view", "/view.html",
                     // 정적 리소스
-                    "/static/**", "/css/**", "/js/**", "/images/**"
+                    "/static/**", "/css/**", "/js/**", "/images/**",
+                    // 이미지 다운로드
+                    "/api/image/download/**"
                 ).permitAll()
                 // 메모 조회 API (GET 요청만 허용)
                 .requestMatchers(HttpMethod.GET, "/api/notes/**").permitAll()

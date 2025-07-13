@@ -171,11 +171,11 @@
                     expiresAtBox.classList.remove('d-none');
                 }
 
-                if (memo.viewLimit === 1) {
-                    onceOnlyWarning.classList.remove('d-none');
-                    // 남은 조회 횟수 계산: viewLimit - viewCount
+                if (memo.viewLimit > 0) {
                     const remainingViews = memo.viewLimit - memo.viewCount;
-                    remainingViewsSpan.textContent = remainingViews;
+                    onceOnlyWarning.classList.remove('d-none');
+                    onceOnlyWarning.querySelector('p').innerHTML = 
+                        `<i class="bi bi-exclamation-triangle-fill"></i> 이 메모는 ${memo.viewLimit}회 열람 제한이 있습니다. 남은 조회 횟수: ${remainingViews > 0 ? remainingViews : 0}회`;
                 }
 
                 memoTitleDisplay.textContent = memo.title || '제목 없음';

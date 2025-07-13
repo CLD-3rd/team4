@@ -67,53 +67,9 @@
     </nav>
 
     <div class="container py-5" style="max-width: 672px;">
-        <header class="text-start mb-5">
+        <header class="text-start mb-4">
             <h1 class="main-title">메모 입력</h1>
         </header>
-
-        <div class="d-flex justify-content-start mb-5">
-            <ul class="nav nav-pills" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pills-preset-tab" data-bs-toggle="pill" data-bs-target="#pills-preset" type="button" role="tab" aria-controls="pills-preset" aria-selected="false">프리셋</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pills-manual-tab" data-bs-toggle="pill" data-bs-target="#pills-manual" type="button" role="tab" aria-controls="pills-manual" aria-selected="true">직접 입력</button>
-                </li>
-            </ul>
-        </div>
-
-        <div class="tab-content mb-5" id="pills-tabContent">
-            <div class="tab-pane fade" id="pills-preset" role="tabpanel" aria-labelledby="pills-preset-tab">
-                <div class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-preset" data-time="5m">05분</button>
-                    <button type="button" class="btn btn-preset" data-time="10m">10분</button>
-                    <button type="button" class="btn btn-preset" data-time="30m">30분</button>
-                    <button type="button" class="btn btn-preset" data-time="1h">1시간</button>
-                    <button type="button" class="btn btn-preset" data-time="3h">3시간</button>
-                    <button type="button" class="btn btn-preset" data-time="12h">12시간</button>
-                    <button type="button" class="btn btn-preset" data-time="1d">1일</button>
-                    <button type="button" class="btn btn-preset" data-time="3d">3일</button>
-                    <button type="button" class="btn btn-preset" data-time="7d">7일</button>
-                </div>
-            </div>
-            <div class="tab-pane fade show active" id="pills-manual" role="tabpanel" aria-labelledby="pills-manual-tab">
-                <div class="d-flex align-items-center gap-2">
-                    <input type="number" id="custom-time-value" class="form-control" placeholder="1-1440" style="width: 100px;">
-                    <select id="custom-time-unit" class="form-select" style="width: 100px;">
-                        <option value="m">분</option>
-                        <option value="h">시간</option>
-                        <option value="d">일</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-check mb-5">
-            <input class="form-check-input" type="checkbox" value="" id="once-only-check" checked>
-            <label class="form-check-label" for="once-only-check">
-                열람 횟수 1회로 제한
-            </label>
-        </div>
 
         <div class="mb-4">
             <label for="memo-title" class="form-label">메모 제목</label>
@@ -124,12 +80,82 @@
             <label for="memo-content" class="form-label">메모 내용</label>
             <textarea class="form-control" id="memo-content" rows="12" placeholder="내용"></textarea>
         </div>
+
+        <!-- 고급 설정 토글 -->
+        <div class="advanced-settings mb-4">
+            <a class="settings-toggle d-flex align-items-center text-decoration-none" data-bs-toggle="collapse" href="#advancedSettingsCollapse" role="button" aria-expanded="false" aria-controls="advancedSettingsCollapse">
+                <i class="bi bi-chevron-right toggle-icon me-2"></i>
+                <span style="font-weight: 500; color: #636D5B;">고급 설정</span>
+            </a>
+
+            <div class="collapse" id="advancedSettingsCollapse">
+                <div class="card card-body mt-2" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                    <!-- 시간 제한 설정 -->
+                    <div class="setting-item mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="time-limit-check">
+                            <label class="form-check-label" for="time-limit-check" style="font-weight: 500;">
+                                열람 시간 제한
+                            </label>
+                        </div>
+                        <div id="time-limit-options" class="mt-3 d-none">
+                            <div class="time-preset-group">
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <button type="button" class="btn btn-preset" data-time="5m">5분</button>
+                                    <button type="button" class="btn btn-preset" data-time="10m">10분</button>
+                                    <button type="button" class="btn btn-preset" data-time="30m">30분</button>
+                                    <button type="button" class="btn btn-preset" data-time="1h">1시간</button>
+                                    <button type="button" class="btn btn-preset" data-time="3h">3시간</button>
+                                    <button type="button" class="btn btn-preset" data-time="1d">1일</button>
+                                    <button type="button" class="btn btn-preset" data-time="7d">7일</button>
+                                    <button type="button" class="btn btn-preset custom-btn">직접 입력</button>
+                                </div>
+                                <div class="custom-time-input d-none">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="number" id="custom-time-value" class="form-control" placeholder="1" min="1" style="width: 100px;">
+                                        <select id="custom-time-unit" class="form-select" style="width: 100px;">
+                                            <option value="m">분</option>
+                                            <option value="h">시간</option>
+                                            <option value="d">일</option>
+                                        </select>
+                                        <span class="unit-text">후 삭제</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 열람 횟수 설정 -->
+                    <div class="setting-item">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="view-limit-check">
+                            <label class="form-check-label" for="view-limit-check" style="font-weight: 500;">
+                                열람 횟수 제한
+                            </label>
+                        </div>
+                        <div id="view-limit-options" class="mt-2 d-none">
+                            <div class="d-flex align-items-center gap-2">
+                                <select class="form-select" id="view-limit-select" style="width: 150px;">
+                                    <option value="1" selected>1회</option>
+                                    <option value="3">3회</option>
+                                    <option value="5">5회</option>
+                                    <option value="10">10회</option>
+                                    <option value="custom">직접 입력</option>
+                                </select>
+                                <input type="number" class="form-control d-none" id="custom-view-limit" placeholder="횟수" min="1" style="width: 100px;">
+                                <span class="unit-text">회 후 삭제</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <input type="file" id="file-input" class="d-none">
 
-        <!-- 파일명 표시 영역 (최소 높이 설정) -->
+        <!-- 파일명 표시 영역 -->
         <div id="file-name-display" class="text-muted mb-2 d-flex align-items-center gap-2" style="min-height: 1.5rem;">
-		    <button type="button" id="remove-file-btn" class="btn btn-sm btn-outline-danger d-none" , style="width: 1rem; height: 1rem; padding: 0; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; text-align: center;">
+		    <button type="button" id="remove-file-btn" class="btn btn-sm btn-outline-danger d-none" style="width: 1rem; height: 1rem; padding: 0; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; text-align: center;">
 		        <i class="bi bi-x"></i>
 		    </button>
 		    <span id="file-name-text"></span>
@@ -215,137 +241,180 @@
                     }
                 })
                 .catch(error => console.error('Error fetching username:', error));
-        });
 
-        // 시간 프리셋 버튼 로직
-        const presetButtons = document.querySelectorAll('.btn-preset');
-        presetButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                presetButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                // 여기에 프리셋 시간 값을 직접 입력 필드에 설정하는 로직 추가 가능
+            // Advanced settings toggle icon change
+            const advancedSettingsCollapse = document.getElementById('advancedSettingsCollapse');
+            const toggleIcon = document.querySelector('.settings-toggle .toggle-icon');
+            advancedSettingsCollapse.addEventListener('show.bs.collapse', () => {
+                toggleIcon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+            });
+            advancedSettingsCollapse.addEventListener('hide.bs.collapse', () => {
+                toggleIcon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+            });
+
+            // Time limit checkbox logic
+            const timeLimitCheck = document.getElementById('time-limit-check');
+            const timeLimitOptions = document.getElementById('time-limit-options');
+            timeLimitCheck.addEventListener('change', () => {
+                const isChecked = timeLimitCheck.checked;
+                timeLimitOptions.classList.toggle('d-none', !isChecked);
+                // 체크 시 5분 버튼 기본 선택
+                if (isChecked && !document.querySelector('.btn-preset.active')) {
+                    const fiveMinButton = document.querySelector('.btn-preset[data-time="5m"]');
+                    if(fiveMinButton) fiveMinButton.click();
+                }
+            });
+
+            // Time limit preset/custom logic
+            const presetButtons = document.querySelectorAll('.btn-preset');
+            const customTimeInputDiv = document.querySelector('.custom-time-input');
+            presetButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    presetButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    if (button.classList.contains('custom-btn')) {
+                        customTimeInputDiv.classList.remove('d-none');
+                    } else {
+                        customTimeInputDiv.classList.add('d-none');
+                    }
+                });
+            });
+
+            // View limit checkbox logic
+            const viewLimitCheck = document.getElementById('view-limit-check');
+            const viewLimitOptions = document.getElementById('view-limit-options');
+            viewLimitCheck.addEventListener('change', () => {
+                viewLimitOptions.classList.toggle('d-none', !viewLimitCheck.checked);
+            });
+
+            // View limit dropdown/custom logic
+            const viewLimitSelect = document.getElementById('view-limit-select');
+            const customViewLimitInput = document.getElementById('custom-view-limit');
+            viewLimitSelect.addEventListener('change', () => {
+                if (viewLimitSelect.value === 'custom') {
+                    customViewLimitInput.classList.remove('d-none');
+                } else {
+                    customViewLimitInput.classList.add('d-none');
+                }
+            });
+
+            // File attachment logic
+            const fileInput = document.getElementById('file-input');
+            const fileNameText = document.getElementById('file-name-text');
+            const removeFileBtn = document.getElementById('remove-file-btn');
+            
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    const fileName = fileInput.files[0].name;
+                    fileNameText.textContent = `첨부된 파일: ${fileName}`;
+                    fileNameText.title = fileName;
+                    removeFileBtn.classList.remove('d-none');
+                } else {
+                    fileNameText.textContent = '';
+                    fileNameText.title = '';
+                    removeFileBtn.classList.add('d-none');
+                }
+            });
+
+            removeFileBtn.addEventListener('click', () => {
+                fileInput.value = '';
+                fileNameText.textContent = '';
+                fileNameText.title = '';
+                removeFileBtn.classList.add('d-none');
             });
         });
 
-        // 파일 첨부 시 파일 이름 표시 로직
-        const fileInput = document.getElementById('file-input');
-        const fileNameDisplay = document.getElementById('file-name-display');
-        const fileNameText = document.getElementById('file-name-text');
-		const removeFileBtn = document.getElementById('remove-file-btn');
-		
-		fileInput.addEventListener('change', () => {
-		    if (fileInput.files.length > 0) {
-		        const fileName = fileInput.files[0].name;
-		        fileNameText.textContent = `첨부된 파일: ${fileName}`;
-		        fileNameText.title = fileName;
-		        removeFileBtn.classList.remove('d-none'); // X 버튼 표시
-		    } else {
-		        fileNameText.textContent = '';
-		        fileNameText.title = '';
-		        removeFileBtn.classList.add('d-none'); // X 버튼 숨김
-		    }
-		});
-		
-		// 파일 제거 버튼 클릭 이벤트 추가
-		removeFileBtn.addEventListener('click', () => {
-		    fileInput.value = '';
-		    fileNameText.textContent = '';
-		    fileNameText.title = '';
-		    removeFileBtn.classList.add('d-none');
-		});
-
         // TTL 계산 함수
         function calculateTTL() {
-            let ttlMinutes = 1; // 기본값 1분
-            const activeTab = document.querySelector('.tab-pane.fade.show.active');
+            if (!document.getElementById('time-limit-check').checked) {
+                return 0; // 0 for unlimited
+            }
 
-            if (activeTab.id === 'pills-preset') {
-                const activeButton = document.querySelector('.btn-preset.active');
-                if (activeButton) {
+            let ttlMinutes = 60; // Default to 60 mins if enabled but no selection
+            const activeButton = document.querySelector('.btn-preset.active');
+
+            if (activeButton) {
+                if (activeButton.classList.contains('custom-btn')) {
+                    const value = parseInt(document.getElementById('custom-time-value').value);
+                    const unit = document.getElementById('custom-time-unit').value;
+                    if (!isNaN(value) && value > 0) {
+                        if (unit === 'm') ttlMinutes = value;
+                        else if (unit === 'h') ttlMinutes = value * 60;
+                        else if (unit === 'd') ttlMinutes = value * 60 * 24;
+                    }
+                } else {
                     const time = activeButton.dataset.time;
                     const value = parseInt(time.slice(0, -1));
                     const unit = time.slice(-1);
-                    if (unit === 'm') {
-                        ttlMinutes = value;
-                    } else if (unit === 'h') {
-                        ttlMinutes = value * 60;
-                    } else if (unit === 'd') {
-                        ttlMinutes = value * 60 * 24;
-                    }
-                }
-            } else if (activeTab.id === 'pills-manual') {
-                const value = parseInt(document.getElementById('custom-time-value').value);
-                const unit = document.getElementById('custom-time-unit').value;
-                if (!isNaN(value) && value > 0) {
-                    if (unit === 'm') {
-                        ttlMinutes = value;
-                    } else if (unit === 'h') {
-                        ttlMinutes = value * 60;
-                    } else if (unit === 'd') {
-                        ttlMinutes = value * 60 * 24;
-                    }
+                    if (unit === 'm') ttlMinutes = value;
+                    else if (unit === 'h') ttlMinutes = value * 60;
+                    else if (unit === 'd') ttlMinutes = value * 60 * 24;
                 }
             }
             return ttlMinutes;
         }
 
+        // View Limit 계산 함수
+        function getViewLimit() {
+            if (!document.getElementById('view-limit-check').checked) {
+                return 0; // 0 for unlimited
+            }
+            const select = document.getElementById('view-limit-select');
+            if (select.value === 'custom') {
+                const customValue = parseInt(document.getElementById('custom-view-limit').value);
+                return isNaN(customValue) || customValue < 1 ? 1 : customValue;
+            }
+            return parseInt(select.value);
+        }
+
         // TTL을 사람이 읽기 쉬운 형태로 변환
         function formatTTL(minutes) {
-            if (minutes < 60) {
-                return `${minutes}분`;
-            } else if (minutes < 1440) {
+            if (minutes === 0) return '무제한';
+            if (minutes < 60) return `${minutes}분`;
+            if (minutes < 1440) {
                 const hours = Math.floor(minutes / 60);
-                const remainingMinutes = minutes % 60;
-                return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
-            } else {
-                const days = Math.floor(minutes / 1440);
-                const remainingHours = Math.floor((minutes % 1440) / 60);
-                return remainingHours > 0 ? `${days}일 ${remainingHours}시간` : `${days}일`;
+                const remMinutes = minutes % 60;
+                return remMinutes > 0 ? `${hours}시간 ${remMinutes}분` : `${hours}시간`;
             }
+            const days = Math.floor(minutes / 1440);
+            const remHours = Math.floor((minutes % 1440) / 60);
+            return remHours > 0 ? `${days}일 ${remHours}시간` : `${days}일`;
         }
 
         // 확인창 표시 함수
         function showConfirmModal() {
             const title = document.getElementById('memo-title').value || '제목 없음';
             const content = document.getElementById('memo-content').value || '내용 없음';
-            const isOnceOnly = document.getElementById('once-only-check').checked;
             const ttlMinutes = calculateTTL();
+            const viewLimit = getViewLimit();
             const fileInput = document.getElementById('file-input');
 
-            // 미리보기 내용 설정
             document.getElementById('preview-title').textContent = title;
             document.getElementById('preview-content').textContent = content;
             
-            // 설정 정보 구성
             let settingsText = `만료 시간: ${formatTTL(ttlMinutes)}\n`;
-            settingsText += `열람 제한: ${isOnceOnly ? '1회 열람 후 삭제' : '무제한'}`;
+            settingsText += `열람 제한: ${viewLimit === 0 ? '무제한' : `${viewLimit}회 열람 후 삭제`}`;
             document.getElementById('preview-settings').textContent = settingsText;
 
-            // 첨부 파일 정보
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 document.getElementById('preview-filename').textContent = file.name;
                 
-                // 이미지 파일인 경우 미리보기 표시
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const previewImage = document.getElementById('preview-image');
-                        previewImage.src = e.target.result;
-                        previewImage.style.display = 'block';
+                    reader.onload = (e) => {
+                        document.getElementById('preview-image').src = e.target.result;
+                        document.getElementById('preview-image').style.display = 'block';
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    // 이미지가 아닌 경우 미리보기 숨김
                     document.getElementById('preview-image').style.display = 'none';
                 }
-                
                 document.getElementById('preview-file').style.display = 'block';
             } else {
                 document.getElementById('preview-file').style.display = 'none';
             }
 
-            // 모달 표시
             const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
             modal.show();
         }
@@ -355,17 +424,13 @@
             const formData = new FormData();
             formData.append('title', document.getElementById('memo-title').value);
             formData.append('text', document.getElementById('memo-content').value);
-            
-            const isOnceOnly = document.getElementById('once-only-check').checked;
-            formData.append('viewLimit', isOnceOnly ? '1' : '0');
+            formData.append('viewLimit', getViewLimit());
+            formData.append('ttlMinutes', calculateTTL());
 
             const imageFile = document.getElementById('file-input').files[0];
             if (imageFile) {
                 formData.append('image', imageFile);
             }
-
-            const ttlMinutes = calculateTTL();
-            formData.append('ttlMinutes', ttlMinutes);
 
             try {
                 const response = await fetch('/api/notes', {
@@ -384,16 +449,10 @@
             }
         }
 
-        // 저장 버튼 클릭 시 확인창 표시
         document.getElementById('create-memo-btn').addEventListener('click', showConfirmModal);
-
-        // 확인창에서 저장 확인 시 실제 저장
         document.getElementById('confirm-save-btn').addEventListener('click', () => {
-            // 모달 닫기
             const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
             modal.hide();
-            
-            // 저장 
             saveMemo();
         });
     </script>
