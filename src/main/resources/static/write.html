@@ -377,6 +377,15 @@
                 }
             });
 
+            // 숫자 입력 필드에서 특수문자 입력 방지
+            const customTimeInput = document.getElementById('custom-time-value');
+            function sanitizeNumericInput(event) {
+                // 숫자가 아닌 모든 문자를 제거 (음수, 소수점 등 방지)
+                event.target.value = event.target.value.replace(/\D/g, '');
+            }
+            customTimeInput.addEventListener('input', sanitizeNumericInput);
+            customViewLimitInput.addEventListener('input', sanitizeNumericInput);
+
             // File attachment logic
             const fileNameText = document.getElementById('file-name-text');
             const removeFileBtn = document.getElementById('remove-file-btn');
