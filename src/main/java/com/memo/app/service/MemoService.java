@@ -30,7 +30,7 @@ public class MemoService {
     private final MemoListRepository memoListRepository;
     private final UserRepository userRepository;
 
-    public Memo createMemo(String text, String imageUrl, String originalFileName, int viewLimit, String title, int ttlMinutes) throws IOException {
+    public Memo createMemo(String text, String imageUrl, String originalFileName, int viewLimit, String title, int ttlMinutes, String encryptedImage) throws IOException {
         String id = UUID.randomUUID().toString(); // 순수 UUID 생성
         String memoId = "memo:" + id; // Redis에 사용할 키
         
