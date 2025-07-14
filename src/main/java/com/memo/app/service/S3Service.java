@@ -18,6 +18,7 @@ public class S3Service {
 
     private final S3Client s3Client;
     private final String bucketName = "memo-image-bucket";
+//    private final String bucketName = "1dyntestbucket";
 
     // 이미지 업로드
     public String upload(String encryptedBase64) throws IOException {

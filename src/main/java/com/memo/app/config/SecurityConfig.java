@@ -32,7 +32,7 @@ public class SecurityConfig {
                     // 정적 리소스
                     "/static/**", "/css/**", "/js/**", "/images/**",
                     // 로그인 정보
-//                    "/api/auth/**",
+                    "/api/auth/**",
                     // 이미지 다운로드
                     "/api/image/download/**"
                 ).permitAll()
