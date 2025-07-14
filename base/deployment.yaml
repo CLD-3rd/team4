@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: memo-app
-        image: memo-app-image:latest  
+        image: memo-app-image
         ports:
         - containerPort: 8080
           name: http    
