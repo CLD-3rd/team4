@@ -142,6 +142,10 @@ public class MemoService {
     // 작성자가 직접 삭제
     public void deleteMemo(String id) {
         deleteMemoInternal(id, null, true);
+        MemoList memoList = memoListRepository.findById(id).orElse(null);
+
+        // DB에서 삭제
+        memoListRepository.delete(memoList);
     }
     
     // 삭제
@@ -172,14 +176,17 @@ public class MemoService {
         // Redis 메모 키 삭제
         redisTemplate.delete("memo:" + id);
 
-        // 이미지 삭제
-        if (memoList.getFileUrl() != null && !memoList.getFileUrl().isEmpty()) {
+     // 이미지 삭제
+        if (memoList.getFileUrl() != null) {
             try {
-                s3Service.delete(memoList.getFileUrl());
-                // Redis에 별도로 저장된 이미지 URL도 삭제
-                redisTemplate.delete("image:" + id);
+                String imageKey = "image:" + id;
+                String imageUrl = redisTemplate.opsForValue().get(imageKey);
+                redisTemplate.delete(imageKey);
+                if (imageUrl != null) {
+                    s3Service.delete(imageUrl);
+                }
             } catch (Exception e) {
-                System.err.println("S3 또는 Redis 이미지 키 삭제 실패: " + e.getMessage());
+                System.err.println("S3 삭제 실패: " + e.getMessage());
             }
         }
     }
