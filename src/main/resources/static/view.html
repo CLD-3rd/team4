@@ -84,9 +84,9 @@
 
             <div id="memo-image-display" class="mb-4 d-none">
                 <label class="form-label">첨부 파일</label>
-                <div class="w-100 px-4 py-3 bg-light border rounded-md d-flex justify-content-between align-items-center">
-                    <span id="memo-file-name"></span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="file-download-btn">
+                <div class="d-flex justify-content-between align-items-center w-100 px-4 py-3 bg-white border border-gray-200 rounded-md">
+                    <span id="memo-file-name" class="text-muted">첨부파일명</span>
+                    <button id="file-download-btn" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-download"></i> 다운로드
                     </button>
                 </div>
@@ -112,7 +112,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
+        function decryptAES256(ciphertextBase64, base64Key) {
+            const key = CryptoJS.enc.Base64.parse(base64Key);
+            const rawData = CryptoJS.enc.Base64.parse(ciphertextBase64);
+
+            const iv = CryptoJS.lib.WordArray.create(rawData.words.slice(0, 4)); // 16 bytes
+            const ciphertext = CryptoJS.lib.WordArray.create(rawData.words.slice(4));
+
+            const decrypted = CryptoJS.AES.decrypt(
+                { ciphertext },
+                key,
+                { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+            );
+            return decrypted.toString(CryptoJS.enc.Utf8);
+        }
+
         const memoDisplayDiv = document.getElementById('memo-display');
         const errorMessageDiv = document.getElementById('error-message');
         const expiresAtBox = document.getElementById('expires-at-box');
@@ -122,7 +138,6 @@
         const memoTitleDisplay = document.getElementById('memo-title-display');
         const memoContentDisplay = document.getElementById('memo-content-display');
         const memoImageDisplay = document.getElementById('memo-image-display');
-        const memoImage = memoImageDisplay.querySelector('img');
         const copyBtn = document.getElementById('copy-btn');
         const copyBtnText = document.getElementById('copy-btn-text');
         const downloadBtn = document.getElementById('download-btn');
@@ -135,18 +150,50 @@
             memoDisplayDiv.classList.add('d-none');
         }
 
-        async function fetchMemo() {
+        async function getIdAndKey() {
             const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
+            const id = urlParams.get("id"); // 쿼리에서 id 추출
+            const keyFromFragment = window.location.hash.slice(1); // url에서 key 추출
+            
+            if (keyFromFragment) {
+                // 1. 처음 방문자라도 fragment가 있으면 우선적으로 사용
+                return { id, key: keyFromFragment };
+            }
 
-            if (!id) {
-                showError('조회할 메모 ID가 없습니다.');
+            // IndexedDB에서 조회
+            const db = await new Promise((resolve, reject) => {
+                const request = indexedDB.open("MemoKeyDB", 1);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = reject;
+            });
+
+            return await new Promise((resolve, reject) => {
+                const tx = db.transaction("keys", "readonly");
+                const store = tx.objectStore("keys");
+                const getRequest = store.get(id);
+
+                getRequest.onsuccess = () => {
+                    if (getRequest.result) {
+                        resolve({ id, key: getRequest.result });
+                    } else {
+                        resolve({ id, key: null }); // 키 없을 경우
+                    }
+                };
+                getRequest.onerror = reject;
+            });
+        }
+
+        async function fetchMemo() {
+            const { id, key } = await getIdAndKey();
+
+            if (!id || !key) {
+                showError('조회할 메모 ID 또는 복호화 키가 없습니다.');
                 return;
             }
 
             try {
                 const response = await fetch(`/api/notes/${id}`);
-                
+
                 if (response.status === 404) {
                     showError('메모를 찾을 수 없거나 만료되었습니다.');
                     return;
@@ -156,43 +203,64 @@
                 }
 
                 const memo = await response.json();
+                console.log('서버 응답 메모: ', memo);
 
-                // 네비게이션 바에 사용자 이름 표시 (API 응답에 사용자 정보가 포함되어 있다고 가정)
-                // 이 부분은 실제 API 응답 구조에 따라 수정이 필요할 수 있습니다.
-                // const usernameDisplay = document.getElementById('username-display');
-                // if (usernameDisplay && memo.user) {
-                //     usernameDisplay.textContent = `${memo.user.uid}님`;
-                // }
+                // 복호화
+                const text = decryptAES256(memo.text, key);
 
-                // TTL 정보는 DTO에 포함되어 있다고 가정
-                if (memo.ttl) {
-                    const expires = new Date(new Date().getTime() + memo.ttl * 1000);
-                    expiresAtSpan.textContent = expires.toLocaleString();
-                    expiresAtBox.classList.remove('d-none');
+                memoTitleDisplay.textContent = memo.title || '제목 없음';
+                memoContentDisplay.textContent = text;
+
+                // 첨부파일 처리
+                if (memo.fileName) {
+                    const decryptedFileName = decryptAES256(memo.fileName, key);
+                    const fileNameElement = document.getElementById('memo-file-name');
+                    if (fileNameElement) {
+                        fileNameElement.textContent = decryptedFileName;
+                        memoImageDisplay.classList.remove('d-none');  // 파일 영역 표시
+                    }
+                    
+                    if (memo.imageBase64Encrypted) {
+                        fileDownloadBtn.replaceWith(fileDownloadBtn.cloneNode(true));
+                        const newFileDownloadBtn = document.getElementById('file-download-btn');
+                        newFileDownloadBtn.addEventListener('click', () => {
+                            try {
+                                const decryptedBase64 = decryptAES256(memo.imageBase64Encrypted, key);
+                                const byteCharacters = atob(decryptedBase64);
+                                const byteNumbers = Array.from(byteCharacters, c => c.charCodeAt(0));
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray]);
+                                const a = document.createElement('a');
+                                a.href = URL.createObjectURL(blob);
+                                a.download = decryptedFileName;
+                                a.click();
+                            } catch (err) {
+                                alert('첨부파일 다운로드 중 오류: ' + err.message);
+                            }
+                        });
+                    }
+                } else {
+                    memoImageDisplay.classList.add('d-none');
                 }
 
-                if (memo.viewLimit > 0) {
+                // 조회 제한 처리
+                if (memo.remainingViews !== undefined && memo.viewLimit === 1) {
+                    remainingViewsSpan.textContent = memo.remainingViews;
+                    onceOnlyWarning.classList.remove('d-none');
+                } else if (memo.viewLimit > 0) {
                     const remainingViews = memo.viewLimit - memo.viewCount;
                     onceOnlyWarning.classList.remove('d-none');
                     onceOnlyWarning.querySelector('p').innerHTML = 
                         `<i class="bi bi-exclamation-triangle-fill"></i> 이 메모는 ${memo.viewLimit}회 열람 제한이 있습니다. 남은 조회 횟수: ${remainingViews > 0 ? remainingViews : 0}회`;
                 }
 
-                memoTitleDisplay.textContent = memo.title || '제목 없음';
-                memoContentDisplay.textContent = memo.text;
-
-                if (memo.fileName) {
-                    const memoFileNameSpan = document.getElementById('memo-file-name');
-                    memoFileNameSpan.textContent = memo.fileName;
-                    document.getElementById('memo-image-display').classList.remove('d-none');
-
-                    fileDownloadBtn.addEventListener('click', () => {
-                        window.location.href = `/api/image/download/${id}`;
-                    });
-                } else {
-                    document.getElementById('memo-image-display').classList.add('d-none');
+                // TTL 처리
+                if (memo.ttl) {
+                    const expires = new Date(new Date().getTime() + memo.ttl * 1000);
+                    expiresAtSpan.textContent = expires.toLocaleString();
+                    expiresAtBox.classList.remove('d-none');
                 }
-                
+
                 memoDisplayDiv.classList.remove('d-none');
 
             } catch (error) {
@@ -219,22 +287,22 @@
             document.body.removeChild(element);
         });
 
-		shareBtn.addEventListener('click', () => {
-		    const currentUrl = window.location.href;
-		    navigator.clipboard.writeText(currentUrl)
-		        .then(() => {
-		            shareBtn.innerHTML = `<i class="bi bi-check2"></i> 링크 복사됨!`;
-		            setTimeout(() => {
-		                shareBtn.innerHTML = `<i class="bi bi-share-fill"></i> 공유`;
-		            }, 2000);
-		        })
-		        .catch(err => {
-		            alert('링크 복사 실패: ' + err);
-		        });
-		});
-		
+        shareBtn.addEventListener('click', () => {
+            const currentUrl = window.location.href;
+            navigator.clipboard.writeText(currentUrl)
+                .then(() => {
+                    shareBtn.innerHTML = `<i class="bi bi-check2"></i> 링크 복사됨!`;
+                    setTimeout(() => {
+                        shareBtn.innerHTML = `<i class="bi bi-share"></i> 링크공유`;
+                    }, 2000);
+                })
+                .catch(err => {
+                    alert('링크 복사 실패: ' + err);
+                });
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Fetch username
+            // 사용자명 가져오기
             fetch('/api/auth/username')
                 .then(response => {
                     if (!response.ok) throw new Error('Could not fetch username');

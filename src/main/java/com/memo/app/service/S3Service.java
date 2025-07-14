@@ -1,38 +1,38 @@
 package com.memo.app.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
-
 import java.io.IOException;
+import java.util.Base64;
 import java.util.UUID;
+
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Component
 @RequiredArgsConstructor
 public class S3Service {
 
     private final S3Client s3Client;
-    private final String bucketName = "kaijutestbucket";
-//    private final String bucketName = "1dyntestbucket";
+//    private final String bucketName = "kaijutestbucket";
+    private final String bucketName = "1dyntestbucket";
 
     // 이미지 업로드
-    public String upload(MultipartFile file) throws IOException {
-        String originalFilename = file.getOriginalFilename();
-        String key = "images/" + UUID.randomUUID() + "_" + originalFilename;
+    public String upload(String encryptedBase64) throws IOException {
+    	byte[] bytes = Base64.getDecoder().decode(encryptedBase64);
+        String key = "images/" + UUID.randomUUID();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType(file.getContentType())
+                .contentType("application/octet-stream")
                 .build();
 
         s3Client.putObject(
                 putObjectRequest,
-                software.amazon.awssdk.core.sync.RequestBody.fromInputStream(
-                        file.getInputStream(), file.getSize()
-                )
+                software.amazon.awssdk.core.sync.RequestBody.fromBytes(bytes)
         );
 
 

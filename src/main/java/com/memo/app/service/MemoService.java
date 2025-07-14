@@ -2,6 +2,8 @@ package com.memo.app.service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -37,6 +39,7 @@ public class MemoService {
         memo.setText(text);
         memo.setTitle(title);
         memo.setViewLimit(viewLimit);
+        memo.setImageBase64Encrypted(encryptedImage);
         
         if (ttlMinutes > 0) {
             Duration ttl = Duration.ofMinutes(ttlMinutes);
@@ -128,8 +131,11 @@ public class MemoService {
         return memo;
     }
 
-    public java.util.List<com.memo.app.entity.MemoList> getMyMemos() {
+    public List<MemoList> getMyMemos() {
         User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return Collections.emptyList(); // 비로그인 사용자는 빈 리스트 반환
+        }
         return memoListRepository.findByUserOrderByCreatedAtDesc(currentUser);
     }
     
@@ -185,7 +191,9 @@ public class MemoService {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
             return null;
         }
+
         String currentUserId = authentication.getName();
+
         // 사용자를 찾지 못했을 때 예외를 던지는 대신 null을 반환
         return userRepository.findByUid(currentUserId)
                 .orElse(null);

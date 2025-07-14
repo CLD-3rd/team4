@@ -32,7 +32,8 @@ public class MemoController {
     @PostMapping
     public ResponseEntity<Memo> createMemo(
             @RequestPart("text") String text,
-            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "imageBase64Encrypted", required = false) String encryptedImage,
+            @RequestParam(value = "encryptedFileName", required = false) String fileName,
             @RequestParam(value = "viewLimit", required = false, defaultValue = "0") int viewLimit,
             @RequestParam(value = "title", defaultValue = "제목 없음") String title,
             @RequestParam(value = "ttlMinutes", defaultValue = "1") int ttlMinutes
@@ -41,23 +42,14 @@ public class MemoController {
         String imageUrl = null;
         String originalFileName = null;
 
-        if (image != null && !image.isEmpty()) {
-            System.out.println("이미지 수신됨: " + image.getOriginalFilename() + ", size: " + image.getSize());
-            try {
-                imageUrl = s3Service.upload(image);
-                originalFileName = image.getOriginalFilename();
-                System.out.println("S3 업로드 성공: " + imageUrl);
-            } catch (Exception e) {
-                System.err.println("S3 업로드 실패");
-                e.printStackTrace();
-                // 업로드 실패 시 에러 응답 반환
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
+        if (encryptedImage != null && !encryptedImage.isEmpty()) {
+            System.out.println("이미지 수신됨");
+            imageUrl = s3Service.upload(encryptedImage); // IOException 발생 시 자동 전파
         } else {
             System.out.println("수신된 이미지가 없거나 비어있습니다.");
         }
 
-        Memo memo = memoService.createMemo(text, imageUrl, originalFileName, viewLimit, title, ttlMinutes);
+        Memo memo = memoService.createMemo(text, imageUrl, fileName, viewLimit, title, ttlMinutes, encryptedImage);
         return ResponseEntity.status(HttpStatus.CREATED).body(memo);
     }
 
