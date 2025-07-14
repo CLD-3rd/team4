@@ -22,7 +22,7 @@
 3.  **서버 전송 (Client → Server)**: 암호화된 데이터 덩어리(Blob)와 만료 시간(TTL), 조회수 제한 등 메타데이터를 `FormData`에 담아 Spring Boot 백엔드로 전송합니다. **이 단계에서 비밀키는 절대 서버로 전송되지 않습니다.**
 4.  **데이터 저장 (Server)**:
     - **Redis**: 서버는 전달받은 암호화된 데이터를 그대로 **Redis**에 저장합니다. 이때 사용자가 설정한 TTL(Time To Live)이 적용되어, 지정된 시간이 지나면 Redis가 자동으로 해당 메모를 삭제합니다. 이는 **빠른 접근과 자동 소멸**을 담당하는 캐시 저장소 역할을 합니다.
-    - **MariaDB (Write-Through)**: Redis 저장과 동시에, 영속적인 관리를 위해 암호화된 데이터와 메타데이터를 **MariaDB**에도 저장합니다. (Write-Through 전략). 이는 사용자의 '내 메모 목록' 조회 및 만료 상태 관리에 사용됩니다.
+    - **AWS RDS DB (Write-Through)**: Redis 저장과 동시에, 영속적인 관리를 위해 암호화된 데이터와 메타데이터를 **AWS RDS DB**에도 저장합니다. (Write-Through 전략). 이는 사용자의 '내 메모 목록' 조회 및 만료 상태 관리에 사용됩니다.
     - **AWS S3**: 암호화된 파일 데이터는 **AWS S3** 버킷에 업로드됩니다. 파일명 또한 암호화된 상태로 저장됩니다.
 5.  **키 저장 및 공유 링크 생성 (Client)**:
     - **IndexedDB**: 서버로부터 메모 고유 ID를 응답받으면, 브라우저는 `(ID, 비밀키)` 쌍을 **IndexedDB**에 저장합니다. 이는 사용자가 나중에 동일한 브라우저에서 메모를 다시 조회할 때 키를 찾기 위함입니다.
@@ -162,7 +162,7 @@
 ## 주요 기술 스택
 
 -   **Backend**: Spring Boot, Spring Security, Spring Data JPA, Spring Data Redis
--   **Database**: MariaDB, Redis
+-   **Database**: RDS DB, Redis
 -   **File Storage**: AWS S3
 -   **Frontend**: HTML, Bootstrap, JavaScript
 -   **Cryptography**: CryptoJS (AES-256-CBC)
