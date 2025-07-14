@@ -10,7 +10,7 @@ patchesStrategicMerge:
   - patch.yaml
 
 images:
-  - name: memo-app-image
+  - name: sinasdocker/memo-app-image
     newName: docker.io/sinasdocker/memo-app-image
     newTag: eaa43f1
 
