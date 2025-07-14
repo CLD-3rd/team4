@@ -8,8 +8,8 @@ resources:
   - configmap.yaml
   - sealed-secret.yaml  
   - ingress.yaml
-  - hpa.yaml
-  - karpenter.yaml
+  # - hpa.yaml
+  # - karpenter.yaml
   - servicemonitor.yaml    
   - externaldns/deployment.yaml
   - externaldns/rbac.yaml   
