@@ -60,7 +60,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
-        push: true
+        push: true 
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ env.SHORT_SHA }}
        
   cd:
