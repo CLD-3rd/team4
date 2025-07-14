@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memo-app
+  labels:
+    app: memo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: memo-app
+  template:
+    metadata:
+      labels:
+        app: memo-app
+      #annotations:
+        #prometheus.io/scrape: "true"
+        #prometheus.io/port: "8080"
+        #prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+      - name: memo-app
+        image: memo-app-image:latest  
+        ports:
+        - containerPort: 8080
+          name: http    
+          protocol: TCP
+          
+        # Health Checks 
+        livenessProbe:                         
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:                       
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        
+        # Resources 추가 (HPA 필수)
+        resources:                             
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes"
+        - name: ENVIRONMENT                    
+          value: "production"
+        - name: JAVA_OPTS                     
+          value: "-Xms256m -Xmx512m"
+        # Redis 설정
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: redis.host
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: redis.port
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: redis.password
+        # RDS 설정
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: rds.endpoint 
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: rds.port 
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: rds.username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: rds.password
+        # AWS 설정
+        - name: AWS_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: aws.region
+        - name: S3_BUCKET_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: s3.bucket.name
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: aws.access.key.id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sealed-secret
+              key: aws.secret.access.key

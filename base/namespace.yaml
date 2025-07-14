@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: memo-app
+  labels:
+    name: memo-app
+    monitoring: "true"

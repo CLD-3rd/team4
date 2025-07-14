@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: memo-app
+data:
+  # application.properties에 직접 값을 넣을 경우 삭제
+  redis.host: redis-master          # Redis Helm chart에서 설치한 서비스 이름
+  redis.port: "6379"
+  aws.region: ap-northeast-2
+  s3.bucket.name: memo-image-bucket

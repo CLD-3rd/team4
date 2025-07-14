@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: memo-app-servicemonitor
+  namespace: monitoring  # monitoring 네임스페이스에 생성
+  labels:
+    app: memo-app
+spec:
+  selector:
+    matchLabels:
+      app: memo-app
+  namespaceSelector:
+    matchNames:
+      - memo-app        # 타겟 네임스페이스
+  endpoints:
+  - port: http
+    path: /actuator/prometheus
+    interval: 15s
+    scrapeTimeout: 10s

@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: memo-app
+
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - patch.yaml
+
+images:
+  - name: memo-app-image
+    newName: docker.io/sinasdocker/memo-app-image
+    newTag: dev-latest
+
+#namePrefix: dev-
