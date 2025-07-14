@@ -1,0 +1,15 @@
+aws:
+  region: ap-northeast-2
+serviceAccount:
+  create: false
+  name: cloudwatch-exporter
+config: |
+  metrics:
+    - aws_namespace: "AWS/RDS"
+      aws_metric_name: "CPUUtilization"
+      dimensions: [ "DBInstanceIdentifier" ]
+      statistics: [ "Average" ]
+    - aws_namespace: "AWS/RDS"
+      aws_metric_name: "FreeStorageSpace"
+      dimensions: [ "DBInstanceIdentifier" ]
+      statistics: [ "Average" ] 
