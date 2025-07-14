@@ -99,7 +99,7 @@
 
 ### 1. 회원가입 및 로그인 (`signup.html`, `login.html`)
 
-<img src="https://github.com/user-attachments/assets/d271d935-0a12-4ffe-b791-e3310af8b6db" width="500" height="500" />
+<img src="https://github.com/user-attachments/assets/c53f8d8c-4752-4f0d-a791-7f77dfefa000" width="500" height="500" />
 
 - **역할**: 서비스의 진입점으로, 사용자를 식별하고 인증하는 역할을 담당합니다.
 - **주요 기능**: 아이디와 비밀번호를 입력하여 새 계정을 생성하거나, 기존 계정으로 로그인합니다.
@@ -110,7 +110,7 @@
 
 ### 2. 메모 작성 (`write.html`)
 
-<img src="https://github.com/user-attachments/assets/5b804e30-2df2-401f-8754-47a72076ee63" width="500" height="500" />
+<img src="https://github.com/user-attachments/assets/4a895d84-7323-418e-a262-869f2a44ef7f" width="500" height="500" />
 
 - **역할**: 서비스의 핵심 기능으로, 새로운 비공개 메모를 생성하는 페이지입니다.
 - **주요 기능**:
@@ -129,7 +129,7 @@
 
 ### 3. 내 메모 목록 (`list.html`)
 
-<img src="https://github.com/user-attachments/assets/70275017-ba9b-4bfc-b82a-5d95f85e8a0c" width="500" height="500" />
+<img src="https://github.com/user-attachments/assets/e01e0c50-1238-4667-a962-bf9210af6afd" width="500" height="500" />
 
 - **역할**: 로그인한 사용자가 자신이 작성한 메모들을 확인하고 관리하는 개인 대시보드입니다.
 - **주요 기능**:
@@ -142,7 +142,7 @@
 
 ### 4. 메모 조회 (`view.html`)
 
-<img src="https://github.com/user-attachments/assets/42d0f476-a59b-4068-a74e-7fdbed6a93c4" width="500" height="500" />
+<img src="https://github.com/user-attachments/assets/9a18349e-5df7-443b-b114-8cd65907ea43" width="500" height="500" />
 
 - **역할**: 생성된 메모의 내용을 확인하는 최종 목적지 페이지입니다.
 - **주요 기능**:
