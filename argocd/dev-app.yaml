@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/CLD-3rd/team4.git
     targetRevision: manifest
-    path: overlays/dev
+    path: overlays/dev 
   destination:
     server: https://kubernetes.default.svc
     namespace: memo-app
