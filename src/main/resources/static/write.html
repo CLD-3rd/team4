@@ -50,6 +50,82 @@
 		    vertical-align: middle;
 		    margin-bottom: 0;
 		}
+		
+		.file-card {
+		    display: flex;
+		    align-items: center;
+		    justify-content: space-between;
+		    background-color: #f5f9f4;
+		    border: 1px solid #d4e6d2;
+		    border-radius: 12px;
+		    padding: 0.75rem 1rem;
+		    margin-top: 1rem;
+		    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+		}
+
+		.file-info {
+		    display: flex;
+		    align-items: center;
+		    gap: 0.75rem;
+		    flex: 1;
+		    min-width: 0;
+		}
+
+		.file-icon {
+		    width: 36px;
+		    height: 36px;
+		    background-color: #DBECD5;
+		    color: #647259;
+		    border-radius: 8px;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    font-size: 1.25rem;
+		}
+
+		.file-name-section {
+		    display: flex;
+		    flex-direction: column;
+		    overflow: hidden;
+		}
+
+		.file-name {
+		    font-weight: 500;
+		    color: #4b5542;
+		    white-space: nowrap;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		}
+
+		.file-meta {
+		    font-size: 0.8rem;
+		    color: #999;
+		}
+
+		.remove-file-btn {
+		    border: none;
+		    background-color: #e8f5e8;
+		    color: #648B60;
+		    font-size: 1rem;
+		    font-weight: bold;
+		    border-radius: 50%;
+		    width: 24px;
+		    height: 24px;
+		    cursor: pointer;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    padding: 0;
+		    transition: background-color 0.2s ease, transform 0.2s ease;
+		    margin-left: 0.5rem;
+		    box-shadow: none;
+		}
+
+		.remove-file-btn:hover {
+		    background-color: #c3dcc2;
+		    transform: scale(1.05);
+		}
+
 
     </style>
 </head>
@@ -153,13 +229,8 @@
         
         <input type="file" id="file-input" class="d-none">
 
-        <!-- 파일명 표시 영역 -->
-        <div id="file-name-display" class="text-muted mb-2 d-flex align-items-center gap-2" style="min-height: 1.5rem;">
-		    <button type="button" id="remove-file-btn" class="btn btn-sm btn-outline-danger d-none" style="width: 1rem; height: 1rem; padding: 0; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; text-align: center;">
-		        <i class="bi bi-x"></i>
-		    </button>
-		    <span id="file-name-text"></span>
-		</div>
+		<!-- 파일 카드가 삽입될 위치 -->
+		<div id="file-card-container"></div>
 
         <div class="d-flex justify-content-between align-items-center pt-4">
             <button type="button" class="btn btn-action-secondary" onclick="document.getElementById('file-input').click();">
@@ -228,7 +299,22 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> <!-- CryptoJS 추가 -->
     <script>
+		// 이미지 카드 삭제 함수
+		function removeFile() {
+		    const container = document.getElementById('file-card-container');
+		    const fileInput = document.getElementById('file-input');
+
+		    if (container) container.innerHTML = '';
+		    if (fileInput) fileInput.value = '';
+		}
+
+		
         document.addEventListener("DOMContentLoaded", function() {
+			fileInput = document.getElementById('file-input');
+			container = document.getElementById('file-card-container');
+
+			if (fileInput) fileInput.value = '';
+			if (container) container.innerHTML = '';
             // Fetch username
             fetch('/api/auth/username')
                 .then(response => {
@@ -292,29 +378,41 @@
             });
 
             // File attachment logic
-            const fileInput = document.getElementById('file-input');
             const fileNameText = document.getElementById('file-name-text');
             const removeFileBtn = document.getElementById('remove-file-btn');
             
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    const fileName = fileInput.files[0].name;
-                    fileNameText.textContent = `첨부된 파일: ${fileName}`;
-                    fileNameText.title = fileName;
-                    removeFileBtn.classList.remove('d-none');
-                } else {
-                    fileNameText.textContent = '';
-                    fileNameText.title = '';
-                    removeFileBtn.classList.add('d-none');
-                }
-            });
+			fileInput.addEventListener('change', () => {
+			    const container = document.getElementById('file-card-container');
+			    container.innerHTML = ''; // 기존 카드 초기화
 
-            removeFileBtn.addEventListener('click', () => {
-                fileInput.value = '';
-                fileNameText.textContent = '';
-                fileNameText.title = '';
-                removeFileBtn.classList.add('d-none');
-            });
+			    if (fileInput.files.length > 0) {
+			        const file = fileInput.files[0];
+
+			        // 파일 크기 계산 (KB 또는 MB 자동)
+			        const sizeInBytes = file.size;
+			        const sizeInKB = (sizeInBytes / 1024).toFixed(1);
+			        const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(1);
+			        const sizeDisplay = sizeInBytes >= 1024 * 1024 ? `${sizeInMB} MB` : `${sizeInKB} KB`;
+
+			        // 카드 HTML 동적 생성
+			        const cardHTML = `
+			            <div class="file-card">
+			                <div class="file-info">
+			                    <div class="file-icon"><i class="bi bi-file-earmark"></i></div>
+			                    <div class="file-name-section">
+			                        <div class="file-name">${file.name}</div>
+			                        <div class="file-meta">${sizeDisplay} · 업로드 완료</div>
+			                    </div>
+			                </div>
+			                <button class="remove-file-btn" onclick="removeFile()">×</button>
+			            </div>
+			        `;
+			        container.innerHTML = cardHTML;
+			    }
+			});
+
+
+
             
             document.getElementById('create-memo-btn').addEventListener('click', showConfirmModal);
             document.getElementById('confirm-save-btn').addEventListener('click', () => {
