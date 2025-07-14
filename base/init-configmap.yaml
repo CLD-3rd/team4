@@ -16,4 +16,4 @@ data:
     GRANT ALL PRIVILEGES ON memo_app.* TO 'memo'@'%';
     FLUSH PRIVILEGES;
 
-    USE memo; 
+    USE memo_app; 
