@@ -4,6 +4,13 @@ provider "aws" {
   profile = "base-user"
 }
 
+# Helm Provider (수정: kubernetes 블록 → kubernetes 인자)
+provider "helm" {
+  kubernetes = {
+    config_path = "~/.kube/config"
+  }
+}
+
 # AWS Account 정보 가져오기
 data "aws_caller_identity" "current" {
 }
@@ -63,4 +70,26 @@ module "rds" {
   vpc_id                    = module.vpc.vpc_id
   allowed_security_group_ids = [module.eks.cluster_security_group_id]
   tags                      = var.tags
+}
+
+# EBS CSI Driver 설치 (Redis PVC를 위해 필요)
+module "ebs_csi_driver" {
+  source = "./modules/ebs-csi-driver"
+  
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+}
+
+# Redis - Helm Chart를 통한 EKS 배포
+module "redis_helm" {
+  source = "./modules/redis select/Helm"
+  
+  name              = "redis-app"
+  namespace         = "default"
+  chart_version     = "18.0.0"
+  auth_enabled      = "false"
+  persistence_enabled = "true"
+  replica_count     = "1"
+  
+  depends_on = [module.ebs_csi_driver]
 }

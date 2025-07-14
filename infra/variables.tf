@@ -24,6 +24,7 @@ variable "project" {
 variable "cluster_name" {
   description = "EKS 클러스터 이름"
   type        = string
+  default     = "memo-eks-cluster" # 수정: 실제 존재하는 클러스터 이름으로 기본값 지정
 }
 
 variable "cluster_version" {

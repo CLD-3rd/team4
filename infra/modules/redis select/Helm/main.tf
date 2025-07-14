@@ -1,11 +1,4 @@
 # Helm으로 생성하는 코드
-# Provider 
-provider "helm" {
-  kubernetes = {
-    config_path = "~/.kube/config"
-  }
-}
-
 # Resource 
 resource "helm_release" "redis" {
   name       = var.name
@@ -13,6 +6,7 @@ resource "helm_release" "redis" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "redis"
   version    = var.chart_version
+  wait       = false  # 수정: Pod 완료를 기다리지 않음
 
   set = [
     {

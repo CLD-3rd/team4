@@ -14,3 +14,13 @@ output "cluster_ca_certificate" {
   value = module.eks_cluster.cluster_certificate_authority_data
 }
 
+output "oidc_provider_arn" {
+  description = "EKS OIDC Provider ARN"
+  value       = module.eks_cluster.oidc_provider_arn
+}
+
+output "oidc_provider_url" {
+  description = "EKS OIDC Provider URL"
+  value       = module.eks_cluster.oidc_provider
+}
+
