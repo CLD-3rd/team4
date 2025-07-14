@@ -15,20 +15,26 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              echo "Running init.sql..."
+              echo "[INFO] Running init.sql..."
               mysql -h memo-mysql.crwimwa2i3jb.ap-northeast-2.rds.amazonaws.com \
-                    -u memo -p"$MYSQL_PASSWORD" < /sql/init.sql
+                    -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" < /sql/init.sql
           env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rds-admin-secret
+                  key: username
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rds-secret
-                  key: SPRING_DATASOURCE_PASSWORD
+                  name: rds-admin-secret
+                  key: password
           volumeMounts:
             - name: sql-volume
               mountPath: /sql
-      restartPolicy: OnFailure
       volumes:
         - name: sql-volume
           configMap:
             name: init-sql-config
+      restartPolicy: OnFailure
+  ttlSecondsAfterFinished: 300  # Job 완료 후 5분 뒤 자동 삭제
