@@ -13,9 +13,9 @@ resources:
   - servicemonitor.yaml    
   - externaldns/deployment.yaml
   - externaldns/rbac.yaml   
-  - db-init/init-configmap.yaml
-  - db-init/rds-admin-secret.yaml
-  - db-init/db-init-job.yaml
+  - init-configmap.yaml
+  - rds-admin-secret.yaml
+  - db-init-job.yaml
 
 images:
   - name: memo-app-image
