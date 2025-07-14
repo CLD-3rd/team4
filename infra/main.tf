@@ -30,11 +30,8 @@ module "vpc" {
   project      = var.project
 }
 
-# EC2 eip 설정 호출
-module "ec2" {
-  source       = "./modules/vpc"
-  project      = var.project
-}
+
+
 
 # IAM - EKS Admin Role
 module "iam" {
@@ -71,7 +68,7 @@ module "rds" {
   source                    = "./modules/rds"
   name                      = "memo-mysql"
   engine_version            = "8.0.36"
-  instance_class            = "db.t3.small"
+  instance_class            = "db.t3.medium"
   allocated_storage         = 20
   db_name                   = "memo"
   db_username               = var.db_username
@@ -126,7 +123,6 @@ module "irsa_argocd" {
   oidc_provider_url    = "oidc.eks.ap-northeast-2.amazonaws.com/id/174009068958FC8C33EFD5A601D6A4E8"    # 실제 OIDC URL
   oidc_provider_arn    = "arn:aws:iam::727646470302:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/174009068958FC8C33EFD5A601D6A4E8"
 }
-
 # ArgoCD 설치
 module "argocd" {
   source = "./modules/argocd"
@@ -140,3 +136,4 @@ module "argocd" {
   }
   depends_on = [module.irsa_argocd]
 }
+

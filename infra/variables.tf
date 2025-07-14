@@ -32,8 +32,6 @@ variable "cluster_version" {
   type        = string
 }
 
-<<<<<<< HEAD
-=======
 variable "oidc_provider_arn" {
   description = "EKS OIDC Provider ARN"
   type        = string
@@ -47,7 +45,6 @@ variable "oidc_provider_url" {
 }
 
 
->>>>>>> 14f8340db181b276bd6e48b324c8f5babb75fc46
 # RDS
 variable "db_name" {
   type        = string
@@ -81,3 +78,4 @@ variable "tags" {
     Project     = "memo"
   }
 }
+

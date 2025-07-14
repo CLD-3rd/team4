@@ -9,7 +9,7 @@ variable "project" {
 variable "vpc_name" {
   description = "VPC 이름"
   type        = string
-  default     = "vpc1"
+  default     = "memo-vpc"
 }
 
 variable "vpc_cidr" {
@@ -21,7 +21,7 @@ variable "vpc_cidr" {
 variable "public_subnet_name" {
   description = "퍼블릭 서브넷 이름"
   type        = string
-  default     = "vpc1-public1"
+  default     = "memo-vpc-public1"
 }
 
 variable "public_subnet_cidr" {
@@ -33,7 +33,7 @@ variable "public_subnet_cidr" {
 variable "private_subnet_name" {
   description = "프라이빗 서브넷 이름"
   type        = string
-  default     = "vpc1-private1"
+  default     = "memo-vpc-private1"
 }
 
 variable "private_subnet_cidr" {
@@ -46,4 +46,4 @@ variable "az" { #서울 a
   description = "서브넷이 생성될 가용 영역"
   type        = string
   default     = "ap-northeast-2a"
-} 
+}
