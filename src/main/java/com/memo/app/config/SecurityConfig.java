@@ -31,10 +31,10 @@ public class SecurityConfig {
                     "/view", "/view.html",
                     // 정적 리소스
                     "/static/**", "/css/**", "/js/**", "/images/**",
-                    // 이미지 다운로드
-                    "/api/image/download/**",
                     // 로그인 정보
-                    "/api/auth/**"
+//                    "/api/auth/**",
+                    // 이미지 다운로드
+                    "/api/image/download/**"
                 ).permitAll()
                 // 메모 조회 API (GET 요청만 허용)
                 .requestMatchers(HttpMethod.GET, "/api/notes/**").permitAll()
