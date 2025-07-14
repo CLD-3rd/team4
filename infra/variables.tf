@@ -32,10 +32,6 @@ variable "cluster_version" {
   type        = string
 }
 
-
-
-
-
 # RDS
 variable "db_name" {
   type        = string

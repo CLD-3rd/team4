@@ -30,6 +30,12 @@ module "vpc" {
   project      = var.project
 }
 
+# EC2 eip 설정 호출
+module "ec2" {
+  source       = "./modules/vpc"
+  project      = var.project
+}
+
 # IAM - EKS Admin Role
 module "iam" {
   source = "./modules/iam"
@@ -126,7 +132,7 @@ module "argocd" {
   source = "./modules/argocd"
 
   namespace     = "argocd"
-  irsa_role_arn = module.argocd_irsa.role_arn
+  irsa_role_arn = module.irsa_argocd.role_arn
 
   providers = {
     helm       = helm
@@ -134,8 +140,3 @@ module "argocd" {
   }
   depends_on = [module.irsa_argocd]
 }
-
-
-
-
-

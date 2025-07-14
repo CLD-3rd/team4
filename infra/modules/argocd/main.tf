@@ -22,15 +22,16 @@ resource "helm_release" "argocd" {
   repository = "https://argoproj.github.io/argo-helm"
   namespace  = var.namespace
 
-  set {
-    name  = "server.serviceAccount.name"
-    value = kubernetes_service_account.argocd_sa.metadata[0].name
-  }
-
-  set {
-    name  = "server.service.type"
-    value = "LoadBalancer"
-  }
+  set = [
+    {
+      name  = "server.serviceAccount.name"
+      value = kubernetes_service_account.argocd_sa.metadata[0].name
+    },
+    {
+      name  = "server.service.type"
+      value = "LoadBalancer"
+    }
+  ]
 
   depends_on = [kubernetes_service_account.argocd_sa]
 }

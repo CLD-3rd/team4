@@ -1,5 +1,5 @@
 output "vpc_id" {
-  value = aws_vpc.vpc1.id
+  value = aws_vpc.memo-vpc.id
 }
 
 output "public_subnet_id" {
