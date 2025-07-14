@@ -115,6 +115,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> <!-- CryptoJS 추가 -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Fetch username
@@ -157,68 +158,145 @@
         });
 
         // 저장 및 링크 생성 버튼 로직
-        document.getElementById('create-memo-btn').addEventListener('click', async () => {
-            const formData = new FormData();
-            formData.append('title', document.getElementById('memo-title').value);
-            formData.append('text', document.getElementById('memo-content').value);
-            
-            const isOnceOnly = document.getElementById('once-only-check').checked;
-            formData.append('viewLimit', isOnceOnly ? '1' : '0');
+		document.getElementById('create-memo-btn').addEventListener('click', async () => {
+		    const title = document.getElementById('memo-title').value;
+		    const text = document.getElementById('memo-content').value;
+		    const isOnceOnly = document.getElementById('once-only-check').checked;
+		    const imageFile = document.getElementById('file-input').files[0];
 
-            const imageFile = document.getElementById('file-input').files[0];
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
+		    // 암호화 키 생성
+		    const base64Key = generateRandomKeyBase64();
 
-            // TTL 로직 추가
-            let ttlMinutes = 1; // 기본값 1분
-            const activeTab = document.querySelector('.tab-pane.fade.show.active');
+		    // 텍스트 암호화
+		    const encryptedText = encryptAES256(text, base64Key);
 
-            if (activeTab.id === 'pills-preset') {
-                const activeButton = document.querySelector('.btn-preset.active');
-                if (activeButton) {
-                    const time = activeButton.dataset.time; // "5m", "1h", "1d"
-                    const value = parseInt(time.slice(0, -1));
-                    const unit = time.slice(-1);
-                    if (unit === 'm') {
-                        ttlMinutes = value;
-                    } else if (unit === 'h') {
-                        ttlMinutes = value * 60;
-                    } else if (unit === 'd') {
-                        ttlMinutes = value * 60 * 24;
-                    }
-                }
-            } else if (activeTab.id === 'pills-manual') {
-                const value = parseInt(document.getElementById('custom-time-value').value);
-                const unit = document.getElementById('custom-time-unit').value;
-                if (!isNaN(value) && value > 0) {
-                    if (unit === 'm') {
-                        ttlMinutes = value;
-                    } else if (unit === 'h') {
-                        ttlMinutes = value * 60;
-                    } else if (unit === 'd') {
-                        ttlMinutes = value * 60 * 24;
-                    }
-                }
-            }
-            formData.append('ttlMinutes', ttlMinutes);
+		    // 이미지 암호화 (base64 후 암호화)
+		    let encryptedImage = null;
+			let encryptedFileName = null;
+			
+		    if (imageFile) {
+		        const base64Image = await readFileAsBase64(imageFile);
+		        encryptedImage = encryptAES256(base64Image, base64Key);
+				encryptedFileName = encryptAES256(imageFile.name, base64Key);
+		    }
 
-            try {
-                const response = await fetch('/api/notes', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server error: ${errorText}`);
-                }
-                const newMemo = await response.json();
-                window.location.href = `/view?id=${newMemo.id}`;
-            } catch (error) {
-                console.error('Failed to create memo:', error);
-                alert(`메모 생성에 실패했습니다: ${error.message}`);
-            }
-        });
+		    // TTL 계산
+		    let ttlMinutes = 1; // 기본값
+		    const activeTab = document.querySelector('.tab-pane.fade.show.active');
+		    if (activeTab.id === 'pills-preset') {
+		        const activeButton = document.querySelector('.btn-preset.active');
+		        if (activeButton) {
+		            const time = activeButton.dataset.time;
+		            const value = parseInt(time.slice(0, -1));
+		            const unit = time.slice(-1);
+		            ttlMinutes = unit === 'm' ? value : unit === 'h' ? value * 60 : value * 60 * 24;
+		        }
+		    } else if (activeTab.id === 'pills-manual') {
+		        const value = parseInt(document.getElementById('custom-time-value').value);
+		        const unit = document.getElementById('custom-time-unit').value;
+		        if (!isNaN(value) && value > 0) {
+		            ttlMinutes = unit === 'm' ? value : unit === 'h' ? value * 60 : value * 60 * 24;
+		        }
+		    }
+
+		    // 서버에 전송할 FormData (모두 암호화된 값)
+		    const formData = new FormData();
+		    formData.append('title', title);
+		    formData.append('text', encryptedText);
+		    if (encryptedImage) formData.append('imageBase64Encrypted', encryptedImage);
+			if (encryptedImage) formData.append('encryptedFileName', encryptedFileName);
+		    formData.append('viewLimit', isOnceOnly ? '1' : '0');
+		    formData.append('ttlMinutes', ttlMinutes);
+
+		    try {
+		        const response = await fetch('/api/notes', {
+		            method: 'POST',
+		            body: formData
+		        });
+		        if (!response.ok) {
+		            const errorText = await response.text();
+		            throw new Error(`Server error: ${errorText}`);
+		        }
+		        const newMemo = await response.json();
+				
+				// key를 IndexedDB에 저장
+				await saveKeyToIndexedDB(newMemo.id, base64Key);
+
+		        // 복호화 키를 fragment로 붙여서 전달
+				window.location.href = `/view?id=${newMemo.id}#${base64Key}`;
+		    } catch (error) {
+		        console.error('Failed to create memo:', error);
+		        alert(`메모 생성에 실패했습니다: ${error.message}`);
+		    }
+		});
+
     </script>
+	<script>
+		// 암호화 키 생성 함수
+		function generateRandomKeyBase64() {
+		    const key = CryptoJS.lib.WordArray.random(32); // 256bit = 32bytes
+		    return CryptoJS.enc.Base64.stringify(key);
+		}
+
+		// AES 암호화 함수
+		function encryptAES256(plaintext, base64Key) {
+		    const key = CryptoJS.enc.Base64.parse(base64Key);
+		    const iv = CryptoJS.lib.WordArray.random(16); // 128bit IV
+		    const encrypted = CryptoJS.AES.encrypt(plaintext, key, {
+		        iv: iv,
+		        mode: CryptoJS.mode.CBC,
+		        padding: CryptoJS.pad.Pkcs7
+		    });
+
+		    const combined = iv.concat(encrypted.ciphertext);
+		    return CryptoJS.enc.Base64.stringify(combined); // IV + CipherText Base64
+		}
+		
+		// 이미지 파일 base64 변환 함수
+		function readFileAsBase64(file) {
+		    return new Promise((resolve, reject) => {
+		        const reader = new FileReader();
+		        reader.onload = () => resolve(reader.result.split(',')[1]); // base64만 추출
+		        reader.onerror = reject;
+		        reader.readAsDataURL(file);
+		    });
+		}
+
+		function saveKeyToIndexedDB(memoId, base64Key) {
+		  return new Promise((resolve, reject) => {
+		    const request = indexedDB.open('MemoKeyDB', 1);
+
+		    request.onupgradeneeded = (e) => {
+		      const db = e.target.result;
+		      if (!db.objectStoreNames.contains('keys')) {
+		        db.createObjectStore('keys');
+		      }
+		    };
+
+		    request.onsuccess = () => {
+		      const db = request.result;
+		      const tx = db.transaction('keys', 'readwrite');
+		      const store = tx.objectStore('keys');
+		      const putRequest = store.put(base64Key, memoId);
+
+		      putRequest.onsuccess = () => {
+		        console.log(`[IndexedDB] 저장 완료 - ID: ${memoId}, KEY: ${base64Key}`);
+		        resolve(); // 💡 여기서 resolve 후에 redirect
+		      };
+
+		      putRequest.onerror = () => {
+		        console.error("IndexedDB 저장 실패:", putRequest.error);
+		        reject(putRequest.error);
+		      };
+		    };
+
+		    request.onerror = () => {
+		      reject(request.error);
+		    };
+		  });
+		}
+
+
+	</script>
 </body>
 </html>

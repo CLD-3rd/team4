@@ -3,6 +3,8 @@ package com.memo.app.service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,7 +36,7 @@ public class MemoService {
 //        this.objectMapper = objectMapper;
 //    }
 
-    public Memo createMemo(String text, String imageUrl, String originalFileName, int viewLimit, String title, int ttlMinutes) throws IOException {
+    public Memo createMemo(String text, String imageUrl, String originalFileName, int viewLimit, String title, int ttlMinutes, String encryptedImage) throws IOException {
         String id = UUID.randomUUID().toString(); // 순수 UUID 생성
         String memoId = "memo:" + id; // Redis에 사용할 키
         
@@ -43,6 +45,7 @@ public class MemoService {
         memo.setText(text);
         memo.setTitle(title);
         memo.setViewLimit(viewLimit);
+        memo.setImageBase64Encrypted(encryptedImage);
         
         Duration ttl = Duration.ofMinutes(ttlMinutes);
         memo.setTtl(ttl.toSeconds());
@@ -143,21 +146,31 @@ public class MemoService {
         return memo;
     }
 
-    public java.util.List<com.memo.app.entity.MemoList> getMyMemos() {
+    public List<MemoList> getMyMemos() {
         User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return Collections.emptyList(); // 비로그인 사용자는 빈 리스트 반환
+        }
         return memoListRepository.findByUserOrderByCreatedAtDesc(currentUser);
     }
     
     // 현재 로그인된 사용자 정보 가져오기
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 인증 정보가 없거나 인증되지 않은 경우
+        
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
+
         String currentUserId = authentication.getName();
+
+        // anonymousUser는 로그인 안된 사용자
+        if ("anonymousUser".equals(currentUserId)) {
+            return null;
+        }
+
         return userRepository.findByUid(currentUserId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + currentUserId));
+                .orElse(null); // 못 찾으면 null
     }
 }
 

@@ -57,6 +57,28 @@
     </div>
 
     <script>
+		// IndexedDB에서 키 가져오는 함수
+		function getKeyFromIndexedDB(id) {
+		    return new Promise((resolve, reject) => {
+		        const request = indexedDB.open("MemoKeyDB", 1);
+		        request.onsuccess = function (event) {
+		            const db = event.target.result;
+		            const tx = db.transaction("keys", "readonly");
+		            const store = tx.objectStore("keys");
+		            const getRequest = store.get(id);
+		            getRequest.onsuccess = function () {
+		                resolve(getRequest.result || null);
+		            };
+		            getRequest.onerror = function () {
+		                reject(getRequest.error);
+		            };
+		        };
+		        request.onerror = function () {
+		            reject(request.error);
+		        };
+		    });
+		}
+		
         document.addEventListener("DOMContentLoaded", function() {
             // Fetch username
             fetch('/api/auth/username')
@@ -82,44 +104,52 @@
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
-                .then(data => {
-                    const container = document.getElementById('memo-list-container');
-                    if (!container) return;
+				.then(async data => {
+				    const container = document.getElementById('memo-list-container');
+				    if (!container) return;
 
-                    if (data.length === 0) {
-                        container.innerHTML = '<div class="col-12"><p class="text-center text-muted py-5">작성한 메모가 없습니다.</p></div>';
-                        return;
-                    }
+				    if (data.length === 0) {
+				        container.innerHTML = '<div class="col-12"><p class="text-center text-muted py-5">작성한 메모가 없습니다.</p></div>';
+				        return;
+				    }
 
-                    data.forEach(memo => {
-                        const isExpired = memo.isDeleted || (memo.expireAt && new Date(memo.expireAt) < new Date());
-                        const cardCol = document.createElement('div');
-                        cardCol.className = 'col-12 col-md-6 col-lg-4';
+				    for (const memo of data) {
+				        const isExpired = memo.isDeleted || (memo.expireAt && new Date(memo.expireAt) < new Date());
+				        const cardCol = document.createElement('div');
+				        cardCol.className = 'col-12 col-md-6 col-lg-4';
 
-                        let tags = '';
-                        if (memo.viewLimit === 1) {
-                            tags += `<span class="badge bg-warning text-dark me-2">1회 열람</span>`;
-                        }
-                        if (isExpired) {
-                            tags += `<span class="badge bg-danger">만료됨</span>`;
-                        }
+				        // IndexedDB에서 key 조회
+				        let keyFragment = '';
+				        if (!isExpired) {
+				            const key = await getKeyFromIndexedDB(memo.memoId);
+				            if (key) keyFragment = `#${key}`;
+				        }
 
-                        cardCol.innerHTML = `
-                            <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" ${!isExpired ? `onclick="location.href='/view?id=${memo.memoId}'"` : ''}>
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title text-truncate fw-bold">${memo.memoTitle || '제목 없음'}</h5>
-                                    <div class="d-flex justify-content-between text-muted small mt-auto pt-2">
-                                        <span>조회: ${memo.viewCount}</span>
-                                        <span>${new Date(memo.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                    <div class="mt-2">${tags}</div>
-                                </div>
-                                ${memo.expireAt ? `<div class="card-footer text-muted small">만료: ${new Date(memo.expireAt).toLocaleString()}</div>` : ''}
-                            </div>
-                        `;
-                        container.appendChild(cardCol);
-                    });
-                })
+				        let tags = '';
+				        if (memo.viewLimit === 1) {
+				            tags += `<span class="badge bg-warning text-dark me-2">1회 열람</span>`;
+				        }
+				        if (isExpired) {
+				            tags += `<span class="badge bg-danger">만료됨</span>`;
+				        }
+
+				        cardCol.innerHTML = `
+				            <div class="card h-100 memo-card ${isExpired ? 'expired' : ''}" 
+				                ${!isExpired ? `onclick="location.href='/view?id=${memo.memoId}${keyFragment}'"` : ''}>
+				                <div class="card-body d-flex flex-column">
+				                    <h5 class="card-title text-truncate fw-bold">${memo.memoTitle || '제목 없음'}</h5>
+				                    <div class="d-flex justify-content-between text-muted small mt-auto pt-2">
+				                        <span>조회: ${memo.viewCount}</span>
+				                        <span>${new Date(memo.createdAt).toLocaleDateString()}</span>
+				                    </div>
+				                    <div class="mt-2">${tags}</div>
+				                </div>
+				                ${memo.expireAt ? `<div class="card-footer text-muted small">만료: ${new Date(memo.expireAt).toLocaleString()}</div>` : ''}
+				            </div>
+				        `;
+				        container.appendChild(cardCol);
+				    }
+				})
                 .catch(error => {
                     if (error.message !== 'User not authenticated') {
                         console.error('Error fetching memos:', error);

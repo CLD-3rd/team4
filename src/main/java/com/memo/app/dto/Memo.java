@@ -12,4 +12,5 @@ public class Memo {
     private String fileName;
     private int viewLimit; // 0=무제한, 1=1회 열람
     private int viewCount = 0;
+    private String imageBase64Encrypted;
 }
