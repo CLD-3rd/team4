@@ -2,6 +2,7 @@ package com.memo.app.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,13 +24,21 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
-                    "/login", "/login.html",
-                    "/signup", "/signup.html",
-                    "/api/auth/**", // 로그인 필수 ON
-                    "/api/**",
+                	// "/api/**" // 포스트맨 테스트할때에는 허용
+                    // 인증 관련 페이지
+                    "/login", "/login.html", "/signup", "/signup.html",
+                    // 메모 조회 페이지 (forward 경로와 실제 파일 경로 모두 포함)
+                    "/view", "/view.html",
+                    // 정적 리소스
                     "/static/**", "/css/**", "/js/**", "/images/**",
-                    "/view", "/view.html"
+                    // 이미지 다운로드
+                    "/api/image/download/**",
+                    // 로그인 정보
+                    "/api/auth/**"
                 ).permitAll()
+                // 메모 조회 API (GET 요청만 허용)
+                .requestMatchers(HttpMethod.GET, "/api/notes/**").permitAll()
+                // 그 외 모든 요청은 인증 필요
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

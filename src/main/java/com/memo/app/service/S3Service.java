@@ -68,7 +68,19 @@ public class S3Service {
     }
 
     // S3 URL에서 키 추출
-    private String extractKeyFromUrl(String url) {
+    public String extractKeyFromUrl(String url) {
+        if (url == null || !url.contains("images/")) {
+            return null;
+        }
         return url.substring(url.indexOf("images/"));
+    }
+
+    // 파일 다운로드
+    public byte[] downloadFile(String key) throws IOException {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+        return s3Client.getObjectAsBytes(getObjectRequest).asByteArray();
     }
 }
