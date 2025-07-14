@@ -164,7 +164,7 @@
                 <!-- 시간 제한 설정 -->
                 <div class="setting-item mb-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="time-limit-check">
+                        <input class="form-check-input" type="checkbox" id="time-limit-check" checked>
                         <label class="form-check-label" for="time-limit-check" style="font-weight: 700;">
                             열람 시간 제한
                         </label>
@@ -202,7 +202,7 @@
                 <!-- 열람 횟수 설정 -->
                 <div class="setting-item">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="view-limit-check">
+                        <input class="form-check-input" type="checkbox" id="view-limit-check" checked>
                         <label class="form-check-label" for="view-limit-check" style="font-weight: 700;">
                             열람 횟수 제한
                         </label>
@@ -429,6 +429,8 @@
                 modal.hide();
                 saveMemo();
             });
+			timeLimitOptions.classList.toggle('d-none', !timeLimitCheck.checked);
+			viewLimitOptions.classList.toggle('d-none', !viewLimitCheck.checked);
         });
 
         // TTL 계산 함수

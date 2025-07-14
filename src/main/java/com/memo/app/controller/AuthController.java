@@ -29,6 +29,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignUpRequest signUpRequest) {
+    	System.out.println("회원가입 시작");
         if (userRepository.findByUid(signUpRequest.getUid()).isPresent()) {
             return ResponseEntity.badRequest().body("Error: Username is already taken!");
         }
@@ -39,7 +40,7 @@ public class AuthController {
         user.setUpw(passwordEncoder.encode(signUpRequest.getUpw()));
 
         userRepository.save(user);
-
+        System.out.println(user);
         return ResponseEntity.ok("User registered successfully!");
     }
 

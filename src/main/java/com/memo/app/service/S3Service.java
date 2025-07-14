@@ -17,8 +17,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class S3Service {
 
     private final S3Client s3Client;
-//    private final String bucketName = "kaijutestbucket";
-    private final String bucketName = "1dyntestbucket";
+    private final String bucketName = "bu12k3e45t6";
 
     // 이미지 업로드
     public String upload(String encryptedBase64) throws IOException {
