@@ -184,8 +184,40 @@
                 };
             });
         }
+
+        // IndexedDB에서 키 삭제하는 함수
+        function deleteKeyFromIndexedDB(id) {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("MemoKeyDB", 2);
+
+                request.onsuccess = function (event) {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('keys')) {
+                        // Object store가 없으면 삭제할 것도 없으므로 성공 처리
+                        console.log("Object store 'keys' not found, nothing to delete.");
+                        return resolve();
+                    }
+                    const tx = db.transaction("keys", "readwrite");
+                    const store = tx.objectStore("keys");
+                    const deleteRequest = store.delete(id);
+
+                    deleteRequest.onsuccess = function () {
+                        console.log(`Key with ID ${id} deleted from IndexedDB.`);
+                        resolve();
+                    };
+                    deleteRequest.onerror = function () {
+                        console.error(`Error deleting key with ID ${id} from IndexedDB:`, deleteRequest.error);
+                        reject(deleteRequest.error);
+                    };
+                };
+                request.onerror = function (event) {
+                    console.error("Error opening IndexedDB for deletion:", event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
         
-        document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
             // Fetch username
             fetch('/api/auth/username')
                 .then(response => {
@@ -200,38 +232,37 @@
                 })
                 .catch(error => console.error('Error fetching username:', error));
 
-            // 메모 삭제 함수
+            // 메모 삭제 함수 (개별)
             function deleteMemo(memoId, deleteBtn) {
-                // 삭제 버튼 비활성화 및 로딩 표시
                 deleteBtn.disabled = true;
                 deleteBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
                 deleteBtn.style.opacity = '1';
 
                 fetch(`/api/notes/${memoId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Content-Type': 'application/json' }
                 })
                 .then(response => {
-                    console.log(`삭제 응답: ${response.status} ${response.statusText}`);
-                    
-                    if (response.ok) {
-                        // 성공 시 페이지 새로고침
-                        alert('메모가 삭제되었습니다.');
-                        location.reload();
-                    } else {
-                        throw new Error(`삭제 실패: HTTP ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`서버 삭제 실패: HTTP ${response.status}`);
                     }
+                    console.log(`Server-side deletion successful for memo ID: ${memoId}`);
+                    // 서버에서 성공적으로 삭제된 후 IndexedDB에서 키 삭제
+                    return deleteKeyFromIndexedDB(memoId);
+                })
+                .then(() => {
+                    // IndexedDB에서도 성공적으로 삭제된 후
+                    alert('메모가 삭제되었습니다.');
+                    location.reload();
                 })
                 .catch(error => {
-                    console.error('삭제 오류:', error);
-                    alert(`메모 삭제 중 오류가 발생했습니다: ${error.message}\n`);
+                    console.error('삭제 처리 중 오류 발생:', error);
+                    alert(`메모 삭제 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
                     
                     // 오류 시 버튼 복원
                     deleteBtn.disabled = false;
                     deleteBtn.innerHTML = '<i class="bi bi-x"></i>';
-                    deleteBtn.style.opacity = '0';
+                    deleteBtn.style.opacity = '0'; // 원래대로라면 다시 보이게 해야 할 수도 있음
                 });
             }
 
@@ -386,44 +417,50 @@
                 deleteBtn.disabled = true;
                 deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>삭제 중...';
 
-                let deletedCount = 0;
-                let errorCount = 0;
-
-                const deletePromises = memoIds.map(memoId => {
+                const deleteApiPromises = memoIds.map(memoId => {
                     return fetch(`/api/notes/${memoId}`, { 
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' }
                     })
                     .then(response => {
                         if (response.ok) {
-                            deletedCount++;
                             return { success: true, memoId };
-                        } else {
-                            errorCount++;
-                            return { success: false, memoId, status: response.status };
                         }
+                        return { success: false, memoId, status: response.status };
                     })
                     .catch(error => {
-                        errorCount++;
+                        // 개별 fetch의 네트워크 오류 등
                         return { success: false, memoId, error: error.message };
                     });
                 });
 
-                Promise.all(deletePromises)
+                Promise.all(deleteApiPromises)
                 .then(results => {
-                    if (errorCount === 0) {
-                        alert(`${deletedCount}개의 ${sectionName}가 성공적으로 삭제되었습니다.`);
-                    } else {
-                        alert(`${deletedCount}개 성공, ${errorCount}개 실패\n\n일부 메모 삭제에 실패했습니다.`);
-                    }
-                    location.reload();
+                    const successfulDeletes = results.filter(r => r.success);
+                    const errorCount = results.length - successfulDeletes.length;
+                    const idsToDeleteFromIndexedDB = successfulDeletes.map(r => r.memoId);
+
+                    // IndexedDB에서 키 삭제 (성공한 API 호출에 대해서만)
+                    const indexedDBDeletePromises = idsToDeleteFromIndexedDB.map(id => {
+                        return deleteKeyFromIndexedDB(id).catch(err => {
+                            console.error(`IndexedDB에서 키 ${id} 삭제 실패:`, err);
+                            // IndexedDB 삭제 실패는 전체 프로세스를 중단시키지 않음
+                        });
+                    });
+
+                    return Promise.all(indexedDBDeletePromises).then(() => {
+                        if (errorCount > 0) {
+                            alert(`${successfulDeletes.length}개 성공, ${errorCount}개 실패.\n일부 메모 삭제에 실패했습니다.`);
+                        } else {
+                            alert(`${successfulDeletes.length}개의 ${sectionName}가 성공적으로 삭제되었습니다.`);
+                        }
+                        location.reload();
+                    });
                 })
                 .catch(error => {
-                    alert(`삭제 중 오류가 발생했습니다: ${error.message}`);
-                })
-                .finally(() => {
-                    deleteBtn.disabled = false;
-                    deleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>전체 삭제';
+                    // Promise.all 자체의 예기치 않은 오류
+                    alert(`전체 삭제 처리 중 심각한 오류가 발생했습니다: ${error.message}`);
+                    location.reload(); // 부분적으로 성공했을 수 있으므로 페이지 새로고침
                 });
             }
 

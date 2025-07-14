@@ -305,18 +305,26 @@
             // 사용자명 가져오기
             fetch('/api/auth/username')
                 .then(response => {
-                    if (!response.ok) throw new Error('Could not fetch username');
-                    return response.json();
+                    // 응답이 성공적이고, 내용이 JSON 형식인지 확인
+                    const contentType = response.headers.get("content-type");
+                    if (response.ok && contentType && contentType.includes("application/json")) {
+                        return response.json();
+                    }
+                    // 익명 사용자이거나 JSON이 아닌 응답(e.g., 로그인 페이지 HTML)은 처리하지 않음
+                    return null;
                 })
                 .then(data => {
-                    const usernameDisplay = document.getElementById('username-display');
-                    const logoutBtn = document.getElementById('logout-btn');
-                    if (usernameDisplay && data.username) {
+                    if (data && data.username) {
+                        const usernameDisplay = document.getElementById('username-display');
+                        const logoutBtn = document.getElementById('logout-btn');
                         usernameDisplay.textContent = `${data.username}님`;
                         logoutBtn.classList.remove('d-none');
                     }
                 })
-                .catch(error => console.error('Error fetching username:', error));
+                .catch(error => {
+                    // 네트워크 오류 등 예외적인 경우에만 콘솔에 로그
+                    console.error('An unexpected error occurred while fetching username:', error);
+                });
             
             fetchMemo();
         });
