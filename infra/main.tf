@@ -137,10 +137,38 @@ module "argocd" {
 # Bastion
 module "bastion" {
   source         = "./modules/bastion"
-  ami_id         = "ami-081f3c5131ba55215"          # 사용 중인 Ubuntu 또는 Amazon Linux AMI ID
+  ami_id         = "ami-096990086b675eb99"          # 사용 중인 Ubuntu 또는 Amazon Linux AMI ID
   instance_type  = "t3.large"
   key_name       = "bastion-key"
   vpc_id         = module.vpc.vpc_id
   subnet_id      = module.vpc.public_subnet_id
-  instance_name  = "bastion"
+  instance_name  = "bastion"    #memo-bastion으로 변경하기
+}
+
+# FluentBit의 로그 그룹 리소스 먼저 정의
+resource "aws_cloudwatch_log_group" "fluentbit" {
+  name              = "/aws/eks/cluster-logs"
+  retention_in_days = 7
+}
+# FluentBit IRSA 호출
+module "fluentbit_irsa" {
+  source = "./modules/fluentbitirsa"
+
+  role_name            = "fluent-bit-irsa-role"
+  namespace            = "amazon-cloudwatch"
+  service_account_name = "fluent-bit-sa"
+  oidc_provider_url    = "https://oidc.eks.ap-northeast-2.amazonaws.com/id/174009068958FC8C33EFD5A601D6A4E8"
+  oidc_provider_arn    = "arn:aws:iam::123456789012:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/174009068958FC8C33EFD5A601D6A4E8"
+
+ # Fluent Bit 전용 CloudWatch 로그 권한 정책 ARN
+  policy_arns = [
+    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  ]
+}
+
+module "fluentbit" {
+  source         = "./modules/fluentbit"
+  namespace      = "amazon-cloudwatch"
+  service_account_name = module.fluentbit_irsa.service_account_name
+  log_group_name      = aws_cloudwatch_log_group.fluentbit.name
 }
