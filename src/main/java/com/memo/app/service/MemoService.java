@@ -30,33 +30,32 @@ public class MemoService {
     private final MemoListRepository memoListRepository;
     private final UserRepository userRepository;
 
-    public Memo createMemo(String text, String imageUrl, String originalFileName, int viewLimit, String title, int ttlMinutes, String encryptedImage) throws IOException {
-        String id = UUID.randomUUID().toString(); // 순수 UUID 생성
-        String memoId = "memo:" + id; // Redis에 사용할 키
-        
+    public Memo createMemo(String title, String text, String imageBase64Encrypted, String encryptedFileName, int viewLimit, int ttlMinutes) throws IOException {
+        String id = UUID.randomUUID().toString();
+        String memoId = "memo:" + id;
+
+        String imageUrl = null;
+        if (imageBase64Encrypted != null && !imageBase64Encrypted.isEmpty()) {
+            imageUrl = s3Service.upload(imageBase64Encrypted, id + ".enc"); // S3에 암호화된 파일 저장
+        }
+
         Memo memo = new Memo();
-        memo.setId(id); // 클라이언트에게는 순수 UUID를 반환
-        memo.setText(text);
+        memo.setId(id);
         memo.setTitle(title);
+        memo.setText(text); // 암호화된 텍스트
         memo.setViewLimit(viewLimit);
-        memo.setImageBase64Encrypted(encryptedImage);
-        
+        memo.setImageUrl(imageUrl);
+        memo.setFileName(encryptedFileName); // 암호화된 파일 이름
+
         if (ttlMinutes > 0) {
             Duration ttl = Duration.ofMinutes(ttlMinutes);
             memo.setTtl(ttl.toSeconds());
             redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo), ttl);
         } else {
-            memo.setTtl(0L); // 0 또는 음수일 경우 무제한
+            memo.setTtl(0L);
             redisTemplate.opsForValue().set(memoId, objectMapper.writeValueAsString(memo));
         }
 
-        if (imageUrl != null) {
-            memo.setImageUrl(imageUrl);
-            memo.setFileName(originalFileName);
-            redisTemplate.opsForValue().set("image:" + id, imageUrl);
-        }
-
-        // DB에 저장
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserId = authentication.getName();
         User user = userRepository.findByUid(currentUserId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -67,8 +66,7 @@ public class MemoService {
         memoList.setMemoTitle(title);
         memoList.setViewLimit(viewLimit);
         memoList.setFileUrl(imageUrl);
-        memoList.setOriginalFileName(originalFileName);
-        
+        memoList.setOriginalFileName(encryptedFileName);
         memoList.setTtlMinutes(ttlMinutes);
         if (ttlMinutes > 0) {
             memoList.setExpireAt(java.time.LocalDateTime.now().plusMinutes(ttlMinutes));

@@ -155,9 +155,20 @@
         // IndexedDB에서 키 가져오는 함수
         function getKeyFromIndexedDB(id) {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open("MemoKeyDB", 1);
+                const request = indexedDB.open("MemoKeyDB", 2);
+
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('keys')) {
+                        db.createObjectStore('keys');
+                    }
+                };
+
                 request.onsuccess = function (event) {
                     const db = event.target.result;
+                    if (!db.objectStoreNames.contains('keys')) {
+                        return reject('Object store not found');
+                    }
                     const tx = db.transaction("keys", "readonly");
                     const store = tx.objectStore("keys");
                     const getRequest = store.get(id);
