@@ -101,7 +101,7 @@ jobs:
         run: |
           cd overlays/${{ env.ENVIRONMENT }}
           sed -i "s|newTag:.*|newTag: ${{ env.SHORT_SHA }}|g" kustomization.yaml
-          
+           
     
       - name: Commit and push changes
         run: |
