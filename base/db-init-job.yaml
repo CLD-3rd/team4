@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-init-job
+  namespace: memo-app
+  labels:
+    app: memo
+    component: db-init
+spec:
+  template:
+    spec:
+      containers:
+        - name: mysql-client
+          image: mysql:8.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Running init.sql..."
+              mysql -h memo-mysql.crwimwa2i3jb.ap-northeast-2.rds.amazonaws.com \
+                    -u memo -p"$MYSQL_PASSWORD" < /sql/init.sql
+          env:
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rds-secret
+                  key: SPRING_DATASOURCE_PASSWORD
+          volumeMounts:
+            - name: sql-volume
+              mountPath: /sql
+      restartPolicy: OnFailure
+      volumes:
+        - name: sql-volume
+          configMap:
+            name: init-sql-config
