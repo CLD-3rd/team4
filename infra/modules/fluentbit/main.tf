@@ -15,6 +15,7 @@ resource "helm_release" "fluentbit" {
     cloudWatch = {
       logGroupName    = var.log_group_name
       logStreamPrefix = "fluent-bit-"
+      createLogGroup  = true
     }
     backend = {
       type = "cloudwatch"
