@@ -11,6 +11,10 @@ provider "helm" {
   }
 }
 
+provider "kubernetes" {
+  config_path = "~/.kube/config"
+}
+
 # AWS Account 정보 가져오기
 data "aws_caller_identity" "current" {
 }
@@ -105,3 +109,33 @@ module "redis_helm" {
   
   depends_on = [module.ebs_csi_driver]
 }
+
+# ArgoCD 전용 IRSA 생성
+module "irsa_argocd" {
+  source = "./modules/irsa"
+
+  role_name            = "argocd-irsa-role"
+  namespace            = "argocd"
+  service_account_name = "argocd-service-account"
+  oidc_provider_url    = "oidc.eks.ap-northeast-2.amazonaws.com/id/EXAMPLEDID"    # 본인의 OIDC URL
+  oidc_provider_arn    = "arn:aws:iam::123456789012:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/EXAMPLEDID"
+}
+
+# ArgoCD 설치
+module "argocd" {
+  source = "./modules/argocd"
+
+  namespace     = "argocd"
+  irsa_role_arn = module.argocd_irsa.role_arn
+
+  providers = {
+    helm       = helm
+    kubernetes = kubernetes
+  }
+  depends_on = [module.irsa_argocd]
+}
+
+
+
+
+
