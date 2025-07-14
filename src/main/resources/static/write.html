@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pung! - 메모 입력</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #F7F7F7; color: #636D5B; }
+        .navbar { background-color: #DBECD5; border-bottom: 1px solid #BFDDD0; }
+        .navbar-brand .logo-img { width: 8rem; height: 4rem; object-fit: contain; }
+        .navbar-brand .brand-text { color: #647259; font-weight: bold; font-size: 1.5rem; }
+        .nav-link, .btn-link { color: #647259; }
+        .nav-link:hover, .btn-link:hover { color: #4b5542; }
+        .main-title { color: #636D5B; font-weight: bold; }
+        .nav-pills .nav-link { color: white; }
+        .nav-pills .nav-link.active { background-color: white; color: #647259; }
+        .nav-pills { background-color: #89A080; display: inline-flex; border-radius: 0.375rem; padding: 0.25rem; }
+        .btn-preset { background-color: #89A080; color: white; border-radius: 50rem; }
+        .btn-preset.active, .btn-preset:hover { background-color: #647259; color: white; ring: 2px solid #647259; }
+        .form-check-input:checked { background-color: #647259; border-color: #647259; }
+        .form-control:focus, .form-select:focus { border-color: #89A080; box-shadow: 0 0 0 0.25rem rgba(137, 160, 128, 0.5); }
+        .btn-action-secondary { background-color: #89A080; color: white; }
+        .btn-action-secondary:hover { background-color: #70886a; }
+        .btn-action-primary { background-color: #647259; color: white; }
+        .btn-action-primary:hover { background-color: #4b5542; }
+        .modal-header { background-color: #DBECD5; border-bottom: 1px solid #BFDDD0; }
+        .modal-title { color: #647259; font-weight: bold; }
+        .preview-content { white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto; background-color: #f8f9fa; padding: 0.75rem; border-radius: 0.375rem; }
+        .preview-label { font-weight: 600; color: #647259; margin-bottom: 0.5rem; }
+        .file-preview-container { display: flex; align-items: flex-start; gap: 0.75rem; }
+        .file-preview-image { max-width: 120px; max-height: 120px; object-fit: cover; border-radius: 0.375rem; border: 1px solid #dee2e6; }
+        .file-info { flex: 1; min-width: 0; }
+        .file-name { font-weight: 500; margin-bottom: 0.25rem; }
+    	.file-preview-container {
+		    display: flex;
+		    align-items: center;     
+		    gap: 0.75rem;
+		    margin-bottom: 0;        
+		}
+		
+		.file-preview-image {
+		    max-width: 200px;   
+		    max-height: 200px;
+		    object-fit: cover;
+		    border-radius: 0.375rem;
+		    border: 1px solid #dee2e6;
+		    display: inline-block;
+		    vertical-align: middle;
+		    margin-bottom: 0;
+		}
+		
+		.file-card {
+		    display: flex;
+		    align-items: center;
+		    justify-content: space-between;
+		    background-color: #f5f9f4;
+		    border: 1px solid #d4e6d2;
+		    border-radius: 12px;
+		    padding: 0.75rem 1rem;
+		    margin-top: 1rem;
+		    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+		}
+
+		.file-info {
+		    display: flex;
+		    align-items: center;
+		    gap: 0.75rem;
+		    flex: 1;
+		    min-width: 0;
+		}
+
+		.file-icon {
+		    width: 36px;
+		    height: 36px;
+		    background-color: #DBECD5;
+		    color: #647259;
+		    border-radius: 8px;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    font-size: 1.25rem;
+		}
+
+		.file-name-section {
+		    display: flex;
+		    flex-direction: column;
+		    overflow: hidden;
+		}
+
+		.file-name {
+		    font-weight: 500;
+		    color: #4b5542;
+		    white-space: nowrap;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		}
+
+		.file-meta {
+		    font-size: 0.8rem;
+		    color: #999;
+		}
+
+		.remove-file-btn {
+		    border: none;
+		    background-color: #e8f5e8;
+		    color: #648B60;
+		    font-size: 1rem;
+		    font-weight: bold;
+		    border-radius: 50%;
+		    width: 24px;
+		    height: 24px;
+		    cursor: pointer;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    padding: 0;
+		    transition: background-color 0.2s ease, transform 0.2s ease;
+		    margin-left: 0.5rem;
+		    box-shadow: none;
+		}
+
+		.remove-file-btn:hover {
+		    background-color: #c3dcc2;
+		    transform: scale(1.05);
+		}
+
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid" style="max-width: 960px;">
+            <a class="navbar-brand d-flex align-items-center" href="/list">
+                <img src="./images/pung.png" alt="Pung! Logo" class="logo-img">
+            </a>
+            <div class="d-flex align-items-center">
+                <span id="username-display" class="nav-link me-3"></span>
+                <a href="/logout" class="btn btn-link"><i class="bi bi-box-arrow-right fs-4"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5" style="max-width: 672px;">
+        <header class="text-start mb-4">
+            <h1 class="main-title">메모 입력</h1>
+        </header>
+
+        <div class="mb-4">
+            <label for="memo-title" class="form-label">메모 제목</label>
+            <input type="text" class="form-control" id="memo-title" placeholder="제목">
+        </div>
+
+        <div class="mb-4">
+            <label for="memo-content" class="form-label">메모 내용</label>
+            <textarea class="form-control" id="memo-content" rows="12" placeholder="내용"></textarea>
+        </div>
+
+        <!-- 고급 설정 -->
+        <div class="advanced-settings mb-4">
+            <label class="form-label">고급 설정</label>
+            <div class="card card-body" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                <!-- 시간 제한 설정 -->
+                <div class="setting-item mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="time-limit-check">
+                        <label class="form-check-label" for="time-limit-check" style="font-weight: 700;">
+                            열람 시간 제한
+                        </label>
+                    </div>
+                    <div class="mt-1 ms-4 text-muted small">
+                        설정된 시간이 지나면 메모가 자동으로 삭제됩니다.
+                    </div>
+                    <div id="time-limit-options" class="mt-3 d-none">
+                        <div class="time-preset-group">
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="btn btn-preset" data-time="5m">5분</button>
+                                <button type="button" class="btn btn-preset" data-time="10m">10분</button>
+                                <button type="button" class="btn btn-preset" data-time="30m">30분</button>
+                                <button type="button" class="btn btn-preset" data-time="1h">1시간</button>
+                                <button type="button" class="btn btn-preset" data-time="3h">3시간</button>
+                                <button type="button" class="btn btn-preset" data-time="1d">1일</button>
+                                <button type="button" class="btn btn-preset" data-time="7d">7일</button>
+                                <button type="button" class="btn btn-preset custom-btn">직접 입력</button>
+                            </div>
+                            <div class="custom-time-input d-none">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" id="custom-time-value" class="form-control" placeholder="1" min="1" style="width: 100px;">
+                                    <select id="custom-time-unit" class="form-select" style="width: 100px;">
+                                        <option value="m">분</option>
+                                        <option value="h">시간</option>
+                                        <option value="d">일</option>
+                                    </select>
+                                    <span class="unit-text">후 삭제</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 열람 횟수 설정 -->
+                <div class="setting-item">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="view-limit-check">
+                        <label class="form-check-label" for="view-limit-check" style="font-weight: 700;">
+                            열람 횟수 제한
+                        </label>
+                    </div>
+                    <div class="mt-1 ms-4 text-muted small">
+                        설정된 횟수만큼 열람하면 메모가 자동으로 삭제됩니다.
+                    </div>
+                    <div id="view-limit-options" class="mt-2 d-none">
+                        <div class="d-flex align-items-center gap-2">
+                            <select class="form-select" id="view-limit-select" style="width: 150px;">
+                                <option value="1" selected>1회</option>
+                                <option value="3">3회</option>
+                                <option value="5">5회</option>
+                                <option value="10">10회</option>
+                                <option value="custom">직접 입력</option>
+                            </select>
+                            <input type="number" class="form-control d-none" id="custom-view-limit" placeholder="횟수" min="1" style="width: 100px;">
+                            <span class="unit-text">회 후 삭제</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <input type="file" id="file-input" class="d-none">
+
+		<!-- 파일 카드가 삽입될 위치 -->
+		<div id="file-card-container"></div>
+
+        <div class="d-flex justify-content-between align-items-center pt-4">
+            <button type="button" class="btn btn-action-secondary" onclick="document.getElementById('file-input').click();">
+                <i class="bi bi-paperclip"></i> 파일 첨부
+            </button>
+            <button type="button" class="btn btn-action-primary" id="create-memo-btn">
+                저장 및 링크 생성
+            </button>
+        </div>
+    </div>
+
+    <!-- 저장 확인 모달 -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">
+                        <i class="bi bi-check-circle"></i> 메모 저장 확인
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-4">다음 내용으로 메모를 저장하시겠습니까?</p>
+                    
+                    <div class="mb-3">
+                        <div class="preview-label">제목</div>
+                        <div id="preview-title" class="preview-content bg-white border"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="preview-label">내용</div>
+                        <div id="preview-content" class="preview-content bg-white border"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="preview-label">설정</div>
+                        <div class="preview-content bg-white border">
+                            <div id="preview-settings"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="preview-file" class="mb-3" style="display: none;">
+					    <div class="preview-label">첨부 파일</div>
+					    <div class="preview-content bg-white border">
+					        <div class="file-preview-container">
+					            <img id="preview-image" src="" alt="첨부 이미지 미리보기" class="file-preview-image">
+					            <div class="file-info d-flex align-items-center gap-2">
+					                <i class="bi bi-paperclip"></i>
+					                <span id="preview-filename" class="fw-medium"></span>
+					            </div>
+					        </div>
+					    </div>
+					</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-action-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> 취소
+                    </button>
+                    <button type="button" class="btn btn-action-primary" id="confirm-save-btn">
+                        <i class="bi bi-check-circle"></i> 저장하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> <!-- CryptoJS 추가 -->
+    <script>
+		// 이미지 카드 삭제 함수
+		function removeFile() {
+		    const container = document.getElementById('file-card-container');
+		    const fileInput = document.getElementById('file-input');
+
+		    if (container) container.innerHTML = '';
+		    if (fileInput) fileInput.value = '';
+		}
+
+		
+        document.addEventListener("DOMContentLoaded", function() {
+			fileInput = document.getElementById('file-input');
+			container = document.getElementById('file-card-container');
+
+			if (fileInput) fileInput.value = '';
+			if (container) container.innerHTML = '';
+            // Fetch username
+            fetch('/api/auth/username')
+                .then(response => {
+                    if (!response.ok) throw new Error('Could not fetch username');
+                    return response.json();
+                })
+                .then(data => {
+                    const usernameDisplay = document.getElementById('username-display');
+                    if (usernameDisplay && data.username) {
+                        usernameDisplay.textContent = `${data.username}님`;
+                    }
+                })
+                .catch(error => console.error('Error fetching username:', error));
+
+            
+
+            // Time limit checkbox logic
+            const timeLimitCheck = document.getElementById('time-limit-check');
+            const timeLimitOptions = document.getElementById('time-limit-options');
+            timeLimitCheck.addEventListener('change', () => {
+                const isChecked = timeLimitCheck.checked;
+                timeLimitOptions.classList.toggle('d-none', !isChecked);
+                // 체크 시 5분 버튼 기본 선택
+                if (isChecked && !document.querySelector('.btn-preset.active')) {
+                    const fiveMinButton = document.querySelector('.btn-preset[data-time="5m"]');
+                    if(fiveMinButton) fiveMinButton.click();
+                }
+            });
+
+            // Time limit preset/custom logic
+            const presetButtons = document.querySelectorAll('.btn-preset');
+            const customTimeInputDiv = document.querySelector('.custom-time-input');
+            presetButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    presetButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    if (button.classList.contains('custom-btn')) {
+                        customTimeInputDiv.classList.remove('d-none');
+                    } else {
+                        customTimeInputDiv.classList.add('d-none');
+                    }
+                });
+            });
+
+            // View limit checkbox logic
+            const viewLimitCheck = document.getElementById('view-limit-check');
+            const viewLimitOptions = document.getElementById('view-limit-options');
+            viewLimitCheck.addEventListener('change', () => {
+                viewLimitOptions.classList.toggle('d-none', !viewLimitCheck.checked);
+            });
+
+            // View limit dropdown/custom logic
+            const viewLimitSelect = document.getElementById('view-limit-select');
+            const customViewLimitInput = document.getElementById('custom-view-limit');
+            viewLimitSelect.addEventListener('change', () => {
+                if (viewLimitSelect.value === 'custom') {
+                    customViewLimitInput.classList.remove('d-none');
+                } else {
+                    customViewLimitInput.classList.add('d-none');
+                }
+            });
+
+            // 숫자 입력 필드에서 특수문자 입력 방지
+            const customTimeInput = document.getElementById('custom-time-value');
+            function sanitizeNumericInput(event) {
+                // 숫자가 아닌 모든 문자를 제거 (음수, 소수점 등 방지)
+                event.target.value = event.target.value.replace(/\D/g, '');
+            }
+            customTimeInput.addEventListener('input', sanitizeNumericInput);
+            customViewLimitInput.addEventListener('input', sanitizeNumericInput);
+
+            // File attachment logic
+            const fileNameText = document.getElementById('file-name-text');
+            const removeFileBtn = document.getElementById('remove-file-btn');
+            
+			fileInput.addEventListener('change', () => {
+			    const container = document.getElementById('file-card-container');
+			    container.innerHTML = ''; // 기존 카드 초기화
+
+			    if (fileInput.files.length > 0) {
+			        const file = fileInput.files[0];
+
+			        // 파일 크기 계산 (KB 또는 MB 자동)
+			        const sizeInBytes = file.size;
+			        const sizeInKB = (sizeInBytes / 1024).toFixed(1);
+			        const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(1);
+			        const sizeDisplay = sizeInBytes >= 1024 * 1024 ? `${sizeInMB} MB` : `${sizeInKB} KB`;
+
+			        // 카드 HTML 동적 생성
+			        const cardHTML = `
+			            <div class="file-card">
+			                <div class="file-info">
+			                    <div class="file-icon"><i class="bi bi-file-earmark"></i></div>
+			                    <div class="file-name-section">
+			                        <div class="file-name">${file.name}</div>
+			                        <div class="file-meta">${sizeDisplay} · 업로드 완료</div>
+			                    </div>
+			                </div>
+			                <button class="remove-file-btn" onclick="removeFile()">×</button>
+			            </div>
+			        `;
+			        container.innerHTML = cardHTML;
+			    }
+			});
+
+
+
+            
+            document.getElementById('create-memo-btn').addEventListener('click', showConfirmModal);
+            document.getElementById('confirm-save-btn').addEventListener('click', () => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+                modal.hide();
+                saveMemo();
+            });
+        });
+
+        // TTL 계산 함수
+        function calculateTTL() {
+            if (!document.getElementById('time-limit-check').checked) {
+                return 0; // 0 for unlimited
+            }
+
+            let ttlMinutes = 60; // Default to 60 mins if enabled but no selection
+            const activeButton = document.querySelector('.btn-preset.active');
+
+            if (activeButton) {
+                if (activeButton.classList.contains('custom-btn')) {
+                    const value = parseInt(document.getElementById('custom-time-value').value);
+                    const unit = document.getElementById('custom-time-unit').value;
+                    if (!isNaN(value) && value > 0) {
+                        if (unit === 'm') ttlMinutes = value;
+                        else if (unit === 'h') ttlMinutes = value * 60;
+                        else if (unit === 'd') ttlMinutes = value * 60 * 24;
+                    }
+                } else {
+                    const time = activeButton.dataset.time;
+                    const value = parseInt(time.slice(0, -1));
+                    const unit = time.slice(-1);
+                    if (unit === 'm') ttlMinutes = value;
+                    else if (unit === 'h') ttlMinutes = value * 60;
+                    else if (unit === 'd') ttlMinutes = value * 60 * 24;
+                }
+            }
+            return ttlMinutes;
+        }
+
+        // View Limit 계산 함수
+        function getViewLimit() {
+            if (!document.getElementById('view-limit-check').checked) {
+                return 0; // 0 for unlimited
+            }
+            const select = document.getElementById('view-limit-select');
+            if (select.value === 'custom') {
+                const customValue = parseInt(document.getElementById('custom-view-limit').value);
+                return isNaN(customValue) || customValue < 1 ? 1 : customValue;
+            }
+            return parseInt(select.value);
+        }
+
+        // TTL을 사람이 읽기 쉬운 형태로 변환
+        function formatTTL(minutes) {
+            if (minutes === 0) return '무제한';
+            if (minutes < 60) return `${minutes}분`;
+            if (minutes < 1440) {
+                const hours = Math.floor(minutes / 60);
+                const remMinutes = minutes % 60;
+                return remMinutes > 0 ? `${hours}시간 ${remMinutes}분` : `${hours}시간`;
+            }
+            const days = Math.floor(minutes / 1440);
+            const remHours = Math.floor((minutes % 1440) / 60);
+            return remHours > 0 ? `${days}일 ${remHours}시간` : `${days}일`;
+        }
+
+        // 확인창 표시 함수
+        function showConfirmModal() {
+            const title = document.getElementById('memo-title').value || '제목 없음';
+            const content = document.getElementById('memo-content').value || '내용 없음';
+            const ttlMinutes = calculateTTL();
+            const viewLimit = getViewLimit();
+            const fileInput = document.getElementById('file-input');
+
+            document.getElementById('preview-title').textContent = title;
+            document.getElementById('preview-content').textContent = content;
+            
+            let settingsText = `만료 시간: ${formatTTL(ttlMinutes)}\n`;
+            settingsText += `열람 제한: ${viewLimit === 0 ? '무제한' : `${viewLimit}회 열람 후 삭제`}`;
+            document.getElementById('preview-settings').textContent = settingsText;
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                document.getElementById('preview-filename').textContent = file.name;
+                
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        document.getElementById('preview-image').src = e.target.result;
+                        document.getElementById('preview-image').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('preview-image').style.display = 'none';
+                }
+                document.getElementById('preview-file').style.display = 'block';
+            } else {
+                document.getElementById('preview-file').style.display = 'none';
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+        }
+
+        // 실제 저장 함수 (암호화 로직 포함)
+        async function saveMemo() {
+            const title = document.getElementById('memo-title').value;
+            const text = document.getElementById('memo-content').value;
+            const imageFile = document.getElementById('file-input').files[0];
+            const viewLimit = getViewLimit();
+            const ttlMinutes = calculateTTL();
+
+            // 암호화 키 생성
+            const base64Key = generateRandomKeyBase64();
+
+            // 텍스트 암호화
+            const encryptedText = encryptAES256(text, base64Key);
+
+            // 이미지 암호화 (base64 후 암호화)
+            let encryptedImage = null;
+            let encryptedFileName = null;
+            
+            if (imageFile) {
+                const base64Image = await readFileAsBase64(imageFile);
+                encryptedImage = encryptAES256(base64Image, base64Key);
+                encryptedFileName = encryptAES256(imageFile.name, base64Key);
+            }
+
+            // 서버에 전송할 FormData (모두 암호화된 값)
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('text', encryptedText);
+            if (encryptedImage) {
+                formData.append('imageBase64Encrypted', encryptedImage);
+                formData.append('encryptedFileName', encryptedFileName);
+            }
+            formData.append('viewLimit', viewLimit);
+            formData.append('ttlMinutes', ttlMinutes);
+
+            try {
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${errorText}`);
+                }
+                const newMemo = await response.json();
+                
+                // key를 IndexedDB에 저장
+                await saveKeyToIndexedDB(newMemo.id, base64Key);
+
+                // 복호화 키를 fragment로 붙여서 전달
+                window.location.href = `/view?id=${newMemo.id}#${base64Key}`;
+            } catch (error) {
+                console.error('Failed to create memo:', error);
+                alert(`메모 생성에 실패했습니다: ${error.message}`);
+            }
+        }
+    </script>
+	<script>
+		// 암호화 키 생성 함수
+		function generateRandomKeyBase64() {
+		    const key = CryptoJS.lib.WordArray.random(32); // 256bit = 32bytes
+		    return CryptoJS.enc.Base64.stringify(key);
+		}
+
+		// AES 암호화 함수
+		function encryptAES256(plaintext, base64Key) {
+		    const key = CryptoJS.enc.Base64.parse(base64Key);
+		    const iv = CryptoJS.lib.WordArray.random(16); // 128bit IV
+		    const encrypted = CryptoJS.AES.encrypt(plaintext, key, {
+		        iv: iv,
+		        mode: CryptoJS.mode.CBC,
+		        padding: CryptoJS.pad.Pkcs7
+		    });
+
+		    const combined = iv.concat(encrypted.ciphertext);
+		    return CryptoJS.enc.Base64.stringify(combined); // IV + CipherText Base64
+		}
+		
+		// 이미지 파일 base64 변환 함수
+		function readFileAsBase64(file) {
+		    return new Promise((resolve, reject) => {
+		        const reader = new FileReader();
+		        reader.onload = () => resolve(reader.result.split(',')[1]); // base64만 추출
+		        reader.onerror = reject;
+		        reader.readAsDataURL(file);
+		    });
+		}
+
+		function saveKeyToIndexedDB(memoId, base64Key) {
+		  return new Promise((resolve, reject) => {
+		    const request = indexedDB.open('MemoKeyDB', 2);
+
+		    request.onupgradeneeded = (e) => {
+		      const db = e.target.result;
+		      if (!db.objectStoreNames.contains('keys')) {
+		        db.createObjectStore('keys');
+		      }
+		    };
+
+		    request.onsuccess = () => {
+		      const db = request.result;
+		      const tx = db.transaction('keys', 'readwrite');
+		      const store = tx.objectStore('keys');
+		      const putRequest = store.put(base64Key, memoId);
+
+		      putRequest.onsuccess = () => {
+		        console.log(`[IndexedDB] 저장 완료 - ID: ${memoId}, KEY: ${base64Key}`);
+		        resolve(); // 💡 여기서 resolve 후에 redirect
+		      };
+
+		      putRequest.onerror = () => {
+		        console.error("IndexedDB 저장 실패:", putRequest.error);
+		        reject(putRequest.error);
+		      };
+		    };
+
+		    request.onerror = () => {
+		      reject(request.error);
+		    };
+		  });
+		}
+	</script>
+</body>
+</html>
