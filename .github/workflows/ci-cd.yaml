@@ -106,7 +106,7 @@ jobs:
       - name: Commit and push changes
         run: |
           git config --local user.email "${{ secrets.EMAIL }}"
-          git config --local user.name ""
+          git config --local user.name "sinascode"
           git add .
           git commit -m "Update ${{ env.ENVIRONMENT }} image version to ${{ env.date }} - ${{ env.SHORT_SHA }}"
           git push
