@@ -80,6 +80,18 @@ module "ebs_csi_driver" {
   oidc_provider_url = module.eks.oidc_provider_url
 }
 
+# Prometheus - kube-prometheus-stack 설치
+module "prometheus" {
+  source = "./modules/prometheus"
+  depends_on = [module.ebs_csi_driver]
+}
+
+# Grafana 설치
+module "grafana" {
+  source = "./modules/grafana"
+  depends_on = [module.prometheus]
+}
+
 # Redis - Helm Chart를 통한 EKS 배포
 module "redis_helm" {
   source = "./modules/redis select/Helm"
