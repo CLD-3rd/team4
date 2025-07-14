@@ -99,6 +99,61 @@
             color: #6c757d;
             padding: 2rem 0;
         }
+
+        .btn-base {
+          background: #8fbc8f;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          text-decoration: none; /* a 태그의 밑줄 제거 */
+          display: inline-block; /* a 태그를 버튼처럼 보이게 */
+        }
+
+        .btn-base::before {
+          content: '+';
+          font-size: 16px;
+          font-weight: 600;
+          margin-right: 8px;
+        }
+
+        .btn-ripple {
+          transition: all 0.3s ease;
+        }
+
+        .btn-ripple:hover {
+          background: #7da87d;
+          transform: translateY(-1px);
+          color: white;
+        }
+
+        .btn-ripple:active {
+          transform: translateY(0);
+          transition: all 0.1s ease;
+        }
+
+        .btn-ripple::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 0;
+          height: 0;
+          background: rgba(255,255,255,0.3);
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          transition: width 0.5s ease, height 0.5s ease;
+        }
+
+        .btn-ripple:active::after {
+          width: 300px;
+          height: 300px;
+        }
     </style>
 </head>
 <body>
@@ -117,7 +172,7 @@
     <div class="container py-5" style="max-width: 960px;">
         <header class="d-flex justify-content-between align-items-center mb-5">
             <h1 class="main-title">내 메모 목록</h1>
-            <a href="/write" class="btn btn-action-primary">새 메모 작성</a>
+            <a href="/write" class="btn-base btn-ripple">새 메모 작성</a>
         </header>
 
         <!-- 활성 메모 -->
