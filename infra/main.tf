@@ -30,12 +30,6 @@ module "vpc" {
   project      = var.project
 }
 
-# EC2 eip 설정 호출
-module "ec2" {
-  source       = "./modules/vpc"
-  project      = var.project
-}
-
 # IAM - EKS Admin Role
 module "iam" {
   source = "./modules/iam"
@@ -139,4 +133,15 @@ module "argocd" {
     kubernetes = kubernetes
   }
   depends_on = [module.irsa_argocd]
+}
+
+# Bastion
+module "bastion" {
+  source         = "./modules/bastion"
+  ami_id         = "ami-081f3c5131ba55215"          # 사용 중인 Ubuntu 또는 Amazon Linux AMI ID
+  instance_type  = "t3.large"
+  key_name       = "bastion-key"
+  vpc_id         = module.vpc.vpc_id
+  subnet_id      = module.vpc.public_subnet_id
+  instance_name  = "bastion"
 }
