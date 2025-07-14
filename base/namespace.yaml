@@ -4,4 +4,4 @@ metadata:
   name: memo-app
   labels:
     name: memo-app
-    monitoring: "true"
+    monitoring: "true"  

@@ -14,4 +14,4 @@ images:
     newName: docker.io/sinasdocker/memo-app-image
     newTag: dev-latest
 
-#namePrefix: dev-
+#namePrefix: dev- 

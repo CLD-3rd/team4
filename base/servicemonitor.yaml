@@ -16,4 +16,4 @@ spec:
   - port: http
     path: /actuator/prometheus
     interval: 15s
-    scrapeTimeout: 10s
+    scrapeTimeout: 10s 

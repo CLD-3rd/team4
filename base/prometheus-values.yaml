@@ -81,4 +81,4 @@ nodeExporter:
 
 # Kube State Metrics 설정
 kubeStateMetrics:
-  enabled: true
+  enabled: true 

@@ -9,3 +9,4 @@ data:
   redis.port: "6379"
   aws.region: ap-northeast-2
   s3.bucket.name: memo-image-bucket
+ 

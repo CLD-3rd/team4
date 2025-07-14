@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memo-app
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: memo-app
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "dev,kubernetes"
+        - name: LOGGING_LEVEL_ROOT
+          value: "DEBUG"

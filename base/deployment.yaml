@@ -119,4 +119,4 @@ spec:
           valueFrom:
             secretKeyRef:
               name: sealed-secret
-              key: aws.secret.access.key
+              key: aws.secret.access.key  

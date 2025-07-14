@@ -31,4 +31,4 @@ spec:
             - --txt-owner-id=Z05643192X1ZV690J110M
           env:
             - name: AWS_DEFAULT_REGION
-              value: ap-northeast-2
+              value: ap-northeast-2  

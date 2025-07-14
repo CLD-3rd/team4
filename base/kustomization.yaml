@@ -17,4 +17,4 @@ resources:
 images:
   - name: memo-app-image
     newName: docker.io/sinasdocker/memo-app-image
-    newTag: latest
+    newTag: latest 

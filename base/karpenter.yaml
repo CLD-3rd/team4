@@ -45,4 +45,4 @@ spec:
         karpenter.sh/discovery: "memo-eks-cluster"
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: "memo-eks-cluster"
+        karpenter.sh/discovery: "memo-eks-cluster" 
