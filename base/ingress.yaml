@@ -9,7 +9,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/load-balancer-name: memo-app-alb
     alb.ingress.kubernetes.io/group.name: memo-app
-    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:727646470302:certificate/f0b686a2-8e1d-4761-b9cf-c1269da34403"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:571170910853:certificate/3d881eda-5efd-4cb3-be9d-091b024b0f25"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
