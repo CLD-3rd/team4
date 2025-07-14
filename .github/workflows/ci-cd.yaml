@@ -1,9 +1,9 @@
 name: memo-app With Github Actions
 
-# on:
+on:
   # workflow_dispatch:
-  # push:
-    # branches: [develop]
+  push:
+    branches: [develop]
 
 jobs:
   ci:
