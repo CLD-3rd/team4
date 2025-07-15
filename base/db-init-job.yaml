@@ -1,40 +1,40 @@
-# apiVersion: batch/v1
-# kind: Job
-# metadata:
-#   name: db-init-job
-#   namespace: memo-app
-#   labels:
-#     app: memo
-#     component: db-init
-# spec:
-#   template:
-#     spec:
-#       containers:
-#         - name: mysql-client
-#           image: mysql:8.0
-#           command: ["sh", "-c"]
-#           args:
-#             - |
-#               echo "[INFO] Running init.sql..."
-#               mysql -h memo-mysql.cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com \
-#                     -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" < /sql/init.sql
-#           env:
-#             - name: MYSQL_USER
-#               valueFrom:
-#                 secretKeyRef:
-#                   name: rds-admin-secret
-#                   key: username
-#             - name: MYSQL_PASSWORD
-#               valueFrom:
-#                 secretKeyRef:
-#                   name: rds-admin-secret
-#                   key: password
-#           volumeMounts:
-#             - name: sql-volume
-#               mountPath: /sql
-#       volumes:
-#         - name: sql-volume
-#           configMap:
-#             name: init-sql-config
-#       restartPolicy: OnFailure
-#   ttlSecondsAfterFinished: 300  # Job 완료 후 5분 뒤 자동 삭제
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-init-job
+  namespace: memo-app
+  labels:
+    app: memo
+    component: db-init
+spec:
+  template:
+    spec:
+      containers:
+        - name: mysql-client
+          image: mysql:8.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "[INFO] Running init.sql..."
+              mysql -h memo-mysql.cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com \
+                    -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" memodb < /sql/init.sql
+          env:
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rds-admin-secret
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rds-admin-secret
+                  key: password
+          volumeMounts:
+            - name: sql-volume
+              mountPath: /sql
+      volumes:
+        - name: sql-volume
+          configMap:
+            name: init-sql-config
+      restartPolicy: OnFailure
+  ttlSecondsAfterFinished: 300  # Job 완료 후 5분 뒤 자동 삭제
