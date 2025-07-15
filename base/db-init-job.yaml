@@ -16,7 +16,7 @@
 #           args:
 #             - |
 #               echo "[INFO] Running init.sql..."
-#               mysql -h memo-mysql.crwimwa2i3jb.ap-northeast-2.rds.amazonaws.com \
+#               mysql -h memo-mysql.cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com \
 #                     -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" < /sql/init.sql
 #           env:
 #             - name: MYSQL_USER
