@@ -64,7 +64,7 @@ jobs:
         push: true 
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${{ env.SHORT_SHA }}
        
-  cd:
+  cd:  
     needs: ci
     runs-on: ubuntu-latest
     steps:
