@@ -41,7 +41,7 @@ resource "aws_db_instance" "memo_rds" {
   password               = var.db_password
   engine                 = "mysql"
   engine_version         = var.engine_version
-  instance_class         = "db.t3.small"  # 최신 MySQL 버전과 호환되는 인스턴스 타입으로 변경
+  instance_class         = "db.t3.medium"  # 최신 MySQL 버전과 호환되는 인스턴스 타입으로 변경
   allocated_storage      = 20  # 20GB로 고정
   db_subnet_group_name   = aws_db_subnet_group.memo_rds.name
   vpc_security_group_ids = [aws_security_group.memo_rds.id]

@@ -78,3 +78,18 @@ variable "tags" {
   }
 }
 
+# Redis Helm 정보
+output "redis_release_name" {
+  description = "Redis Helm Release 이름"
+  value       = module.redis_helm.redis_release_name
+}
+
+output "redis_status" {
+  description = "Redis Helm Release 상태"
+  value       = module.redis_helm.redis_status
+}
+
+output "redis_port" {
+  description = "Redis 포트"
+  value       = module.redis_helm.redis_port
+}

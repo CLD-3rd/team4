@@ -1,7 +1,7 @@
 # FluentBit IRSA 모듈 outputs.tf
 
 output "service_account_name" {
-  value = kubernetes_service_account.this.metadata[0].name
+  value = var.service_account_name
 }
 
 output "role_arn" {
