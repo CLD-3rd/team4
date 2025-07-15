@@ -1,45 +1,45 @@
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: db-init-job
-  namespace: memo-app
-  labels:
-    app: memo
-    component: db-init
-spec:
-  template:
-    spec:
-      containers:
-        - name: mysql-client
-          image: mysql:8.0
-          command: ["sh", "-c"]
-          args:
-            - |
-              echo "[INFO] Running init.sql..."
-              mysql -h memo-mysql.cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com \
-                    -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" < /sql/init.sql
-          env:
-            - name: RDS_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: sealed-secret
-                  key: rds.endpoint
-            - name: RDS_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: sealed-secret
-                  key: rds.username
-            - name: RDS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sealed-secret
-                  key: rds.password
-          volumeMounts:
-            - name: sql-volume
-              mountPath: /sql
-      volumes:
-        - name: sql-volume
-          configMap:
-            name: init-sql-config
-      restartPolicy: OnFailure
-  ttlSecondsAfterFinished: 300
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: db-init-job
+#   namespace: memo-app
+#   labels:
+#     app: memo
+#     component: db-init
+# spec:
+#   template:
+#     spec:
+#       containers:
+#         - name: mysql-client
+#           image: mysql:8.0
+#           command: ["sh", "-c"]
+#           args:
+#             - |
+#               echo "[INFO] Running init.sql..."
+#               mysql -h memo-mysql.cnqmcq6uwqa3.ap-northeast-2.rds.amazonaws.com \
+#                     -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" < /sql/init.sql
+#           env:
+#             - name: RDS_ENDPOINT
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: sealed-secret
+#                   key: rds.endpoint
+#             - name: RDS_USERNAME
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: sealed-secret
+#                   key: rds.username
+#             - name: RDS_PASSWORD
+#               valueFrom:
+#                 secretKeyRef:
+#                   name: sealed-secret
+#                   key: rds.password
+#           volumeMounts:
+#             - name: sql-volume
+#               mountPath: /sql
+#       volumes:
+#         - name: sql-volume
+#           configMap:
+#             name: init-sql-config
+#       restartPolicy: OnFailure
+#   ttlSecondsAfterFinished: 300
