@@ -12,6 +12,6 @@ patchesStrategicMerge:
 images:
   - name: sinasdocker/memo-app-image
     newName: docker.io/sinasdocker/memo-app-image
-    newTag: 2633d1c
+    newTag: c2ce6fe
 
 #namePrefix: dev- 
