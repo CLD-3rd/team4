@@ -21,10 +21,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "key_name" {
-  description = "SSH key pair name"
-  type = string
-}
+# SSH 키페어는 Terraform이 자동으로 생성/등록하며, bastion-key.pem 파일이 이 모듈 디렉토리에 저장됩니다.
 
 variable "instance_name" {
   description = "Name tag for EC2 instance"

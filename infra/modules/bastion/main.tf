@@ -25,12 +25,29 @@ resource "aws_security_group" "bastion_sg" {
   }
 }
 
+# 키페어 자동 생성 (로컬에서 생성 → 공개키만 AWS에 등록)
+resource "tls_private_key" "bastion" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "aws_key_pair" "bastion" {
+  key_name   = "bastion-key"
+  public_key = tls_private_key.bastion.public_key_openssh
+}
+
+resource "local_file" "bastion_private_key" {
+  content          = tls_private_key.bastion.private_key_pem
+  filename         = "${path.module}/bastion-key.pem"
+  file_permission  = "0600"
+}
+
 # Bastion 생성
 resource "aws_instance" "bastion" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
-  key_name                    = var.key_name
+  key_name                    = aws_key_pair.bastion.key_name
   associate_public_ip_address = true
 
   # 아래처럼, 외부에서 받는 보안그룹 리스트에 방금 만든 보안그룹 ID를 추가해서 씁니다

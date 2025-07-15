@@ -5,7 +5,7 @@ variable "name" {
 }
 
 variable "db_name" {
-  description = "Initial database name"
+  description = "Initial database name (영문자로 시작, 영문+숫자만 허용, 예: memodb)"
   type        = string
 }
 

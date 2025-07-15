@@ -28,3 +28,6 @@ replay_pid*
 # terraform 관련 민감정보
 *.tfstate
 *.tfvars
+
+# AWS 보안사항
+*.pem

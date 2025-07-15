@@ -75,13 +75,14 @@ module "s3" {
 }
 
 # RDS
+# db_name은 반드시 영문자로 시작하고, 영문+숫자만 사용할 수 있습니다. (예: memodb)
 module "rds" {
   source                    = "./modules/rds"
   name                      = "memo-mysql"
   engine_version            = "8.0.36"
   instance_class            = "db.t3.medium"
   allocated_storage         = 20
-  db_name                   = "memo-app"
+  db_name                   = var.db_name
   db_username               = var.db_username
   db_password               = var.db_password
   private_subnet_ids        = module.vpc.private_subnet_ids
@@ -93,9 +94,8 @@ module "rds" {
 # Bastion
 module "bastion" {
   source         = "./modules/bastion"
-  ami_id         = "ami-096990086b675eb99"          # 사용 중인 Ubuntu 또는 Amazon Linux AMI ID
+  ami_id         = "ami-096990086b675eb99"
   instance_type  = "t3.large"
-  key_name       = "bastion-key"
   vpc_id         = module.vpc.vpc_id
   subnet_id      = module.vpc.public_subnet_ids[0]
   instance_name  = "memo-bastion"
