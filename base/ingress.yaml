@@ -11,6 +11,8 @@ metadata:
     alb.ingress.kubernetes.io/group.name: memo-app
     alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:727646470302:certificate/408a9c18-8caa-4981-a34b-975edf6d7419"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    alb.ingress.kubernetes.io/success-codes: "200"
 
 spec:
   ingressClassName: alb
