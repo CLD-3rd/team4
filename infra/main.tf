@@ -54,6 +54,18 @@ module "eks" {
   project        = var.project
 }
 
+# EBS CSI Driver 설치 (Redis PVC를 위해 필요)
+module "ebs_csi_driver" {
+  source = "./modules/ebs-csi-driver"
+  
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+
+  depends_on = [
+    module.eks
+  ]
+}
+
 # S3
 module "s3" {
   source = "./modules/s3"
@@ -67,9 +79,9 @@ module "rds" {
   source                    = "./modules/rds"
   name                      = "memo-mysql"
   engine_version            = "8.0.36"
-  instance_class            = "db.t3.small"
+  instance_class            = "db.t3.medium"
   allocated_storage         = 20
-  db_name                   = "memo"
+  db_name                   = "memo-app"
   db_username               = var.db_username
   db_password               = var.db_password
   private_subnet_ids        = module.vpc.private_subnet_ids
@@ -78,12 +90,15 @@ module "rds" {
   tags                      = var.tags
 }
 
-# EBS CSI Driver 설치 (Redis PVC를 위해 필요)
-module "ebs_csi_driver" {
-  source = "./modules/ebs-csi-driver"
-  
-  oidc_provider_arn = module.eks.oidc_provider_arn
-  oidc_provider_url = module.eks.oidc_provider_url
+# Bastion
+module "bastion" {
+  source         = "./modules/bastion"
+  ami_id         = "ami-096990086b675eb99"          # 사용 중인 Ubuntu 또는 Amazon Linux AMI ID
+  instance_type  = "t3.large"
+  key_name       = "bastion-key"
+  vpc_id         = module.vpc.vpc_id
+  subnet_id      = module.vpc.public_subnet_ids[0]
+  instance_name  = "memo-bastion"
 }
 
 # Prometheus - kube-prometheus-stack 설치
@@ -111,33 +126,3 @@ module "redis_helm" {
   
   depends_on = [module.ebs_csi_driver]
 }
-
-# ArgoCD 전용 IRSA 생성
-module "irsa_argocd" {
-  source = "./modules/irsa"
-
-  role_name            = "argocd-irsa-role"
-  namespace            = "argocd"
-  service_account_name = "argocd-service-account"
-  oidc_provider_url    = "oidc.eks.ap-northeast-2.amazonaws.com/id/174009068958FC8C33EFD5A601D6A4E8"    # 실제 OIDC URL
-  oidc_provider_arn    = "arn:aws:iam::727646470302:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/174009068958FC8C33EFD5A601D6A4E8"
-}
-
-# ArgoCD 설치
-module "argocd" {
-  source = "./modules/argocd"
-
-  namespace     = "argocd"
-  irsa_role_arn = module.irsa_argocd.role_arn
-
-  providers = {
-    helm       = helm
-    kubernetes = kubernetes
-  }
-  depends_on = [module.irsa_argocd]
-}
-
-
-
-
-

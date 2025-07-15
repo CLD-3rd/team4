@@ -23,4 +23,3 @@ output "oidc_provider_url" {
   description = "EKS OIDC Provider URL"
   value       = module.eks_cluster.oidc_provider
 }
-

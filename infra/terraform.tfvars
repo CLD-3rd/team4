@@ -10,13 +10,17 @@ cluster_name    = "memo-eks-cluster"
 cluster_version = "1.29"
 
 # S3
-bucket_name = "memo-image-bucket"
+bucket_name = "memo-image-bucket" 
 
 # RDS
-db_name = "memodb"
+db_name = "memo-app"
 db_username = "memo"
 db_password = "memomemomim"
 
 # IRSA용 OIDC 설정
 oidc_provider_url = "oidc.eks.ap-northeast-2.amazonaws.com/id/DD65EEF4A3302F7E1BEACEF069452752"
+<<<<<<< HEAD
 oidc_provider_arn = "arn:aws:iam::727646470302:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/DD65EEF4A3302F7E1BEACEF069452752"
+=======
+oidc_provider_arn = "arn:aws:iam::727646470302:oidc-provider/oidc.eks.ap-northeast-2.amazonaws.com/id/DD65EEF4A3302F7E1BEACEF069452752"
+>>>>>>> 7c9bd977b009743de5a4c685024a4827e0ce0bf0

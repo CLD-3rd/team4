@@ -1,3 +1,5 @@
+# IRSA 모듈 variables.tf
+
 variable "role_name" {
   type        = string
   description = "생성할 IAM Role 이름"
@@ -22,3 +24,10 @@ variable "oidc_provider_arn" {
   type        = string
   description = "OIDC 공급자 ARN (arn:aws:iam::<account-id>:oidc-provider/...)"
 }
+
+variable "policy_arns" {
+  type        = list(string)
+  description = "IAM Role에 붙일 정책 ARN 리스트"
+  default     = []
+}
+
