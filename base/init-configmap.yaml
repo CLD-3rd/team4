@@ -10,10 +10,10 @@ metadata:
     description: "초기 DB 스키마 생성 SQL"
 data:
   init.sql: |
-    CREATE DATABASE IF NOT EXISTS memo_app;
+    CREATE DATABASE IF NOT EXISTS memodb;
 
     CREATE USER IF NOT EXISTS 'memo'@'%' IDENTIFIED BY 'memomemomim';
-    GRANT ALL PRIVILEGES ON memo_app.* TO 'memo'@'%';
+    GRANT ALL PRIVILEGES ON memodb.* TO 'memo'@'%';
     FLUSH PRIVILEGES;
 
-    USE memo_app; 
+    USE memodb;
