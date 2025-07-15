@@ -13,11 +13,18 @@ spec:
     metadata:
       labels:
         app: memo-app
-      #annotations:
-        #prometheus.io/scrape: "true"
-        #prometheus.io/port: "8080"
-        #prometheus.io/path: "/actuator/prometheus"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: NotIn
+                    values:
+                      - ap-northeast-2c
+                      - ap-northeast-2d
+
       containers:
       - name: memo-app
         image: sinasdocker/memo-app-image  
@@ -26,7 +33,6 @@ spec:
           name: http    
           protocol: TCP
           
-        # Health Checks 
         livenessProbe:                         
           httpGet:
             path: /actuator/health/liveness
@@ -46,7 +52,6 @@ spec:
           successThreshold: 1
           failureThreshold: 3
         
-        # Resources 추가 (HPA 필수)
         resources:                             
           requests:
             memory: "512Mi"
@@ -62,7 +67,6 @@ spec:
           value: "production"
         - name: JAVA_OPTS                     
           value: "-Xms256m -Xmx512m"
-        # Redis 설정
         - name: REDIS_HOST
           valueFrom:
             configMapKeyRef:
@@ -78,7 +82,6 @@ spec:
             secretKeyRef:
               name: sealed-secret
               key: redis.password
-        # RDS 설정
         - name: DB_HOST
           valueFrom:
             secretKeyRef:
@@ -99,7 +102,6 @@ spec:
             secretKeyRef:
               name: sealed-secret
               key: rds.password
-        # AWS 설정
         - name: AWS_REGION
           valueFrom:
             configMapKeyRef:
@@ -119,4 +121,4 @@ spec:
           valueFrom:
             secretKeyRef:
               name: sealed-secret
-              key: aws.secret.access.key  
+              key: aws.secret.access.key
