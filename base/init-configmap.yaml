@@ -1,17 +1,17 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: init-sql-config
-  namespace: memo-app
-  labels:
-    app: memo
-    component: db-init
-  annotations:
-    description: "초기 DB 스키마 생성 SQL"
-data:
-  init.sql: |
-    CREATE USER IF NOT EXISTS 'memo'@'%' IDENTIFIED BY 'memomemomim';
-    GRANT ALL PRIVILEGES ON memodb.* TO 'memo'@'%';
-    FLUSH PRIVILEGES;
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: init-sql-config
+#   namespace: memo-app
+#   labels:
+#     app: memo
+#     component: db-init
+#   annotations:
+#     description: "초기 DB 스키마 생성 SQL"
+# data:
+#   init.sql: |
+#     CREATE USER IF NOT EXISTS 'memo'@'%' IDENTIFIED BY 'memomemomim';
+#     GRANT ALL PRIVILEGES ON memodb.* TO 'memo'@'%';
+#     FLUSH PRIVILEGES;
 
-    USE memodb;
+#     USE memodb;
