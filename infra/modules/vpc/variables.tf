@@ -1,21 +1,20 @@
+
 ### VPC main 의 Variable 변수설정 - 김재신
 
 # 250710 원서희: Project 관련 태그 변수 추가
 variable "project" {
-  description = "Project name for tagging or resource naming"
+  description = "Project name or identifier"
   type        = string
 }
 
 variable "vpc_name" {
-  description = "VPC 이름"
+  description = "Name tag for the VPC resources"
   type        = string
-  default     = "vpc1"
 }
 
 variable "vpc_cidr" {
-  description = "VPC CIDR 블록"
+  description = "CIDR block for the VPC"
   type        = string
-  default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_name" {

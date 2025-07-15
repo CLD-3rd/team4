@@ -1,9 +1,9 @@
 output "vpc_id" {
-  value = aws_vpc.vpc1.id
+  value = aws_vpc.memo-vpc.id
 }
 
-output "public_subnet_id" {
-  value = aws_subnet.public1.id
+output "public_subnet_ids" { # Bastion용 2개 퍼블릭 서브넷 ID 리스트
+  value = [aws_subnet.public1.id, aws_subnet.public2.id]
 }
 
 output "private_subnet_id" { # vpc 모듈에서 정의된 private subnet id

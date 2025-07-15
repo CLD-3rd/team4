@@ -1,5 +1,5 @@
 ### VPC 설정 모듈 (요약:1VPC 1Private 1Public ) - 김재신
-resource "aws_vpc" "vpc1" { # vpc 생성
+resource "aws_vpc" "memo-vpc" { # vpc 생성
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
@@ -8,59 +8,71 @@ resource "aws_vpc" "vpc1" { # vpc 생성
   }
 }
 
-resource "aws_subnet" "public1" { # 퍼블릭 subnet
-  vpc_id                  = aws_vpc.vpc1.id
-  cidr_block              = var.public_subnet_cidr
-  availability_zone       = "ap-northeast-2a" # 서울 a 영역
-  map_public_ip_on_launch = true   # 퍼블릭
+# Public Subnet 생성
+resource "aws_subnet" "public1" {
+  vpc_id                  = aws_vpc.memo-vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "ap-northeast-2a"
+  map_public_ip_on_launch = true
   tags = {
-    Name = var.public_subnet_name
+    Name = "memo-vpc-public-a"
   }
 }
 
-resource "aws_subnet" "private1" { #프라이빗 subnet in ap-northeast-2a
-  vpc_id                  = aws_vpc.vpc1.id
-  cidr_block              = var.private_subnet_cidr
-  availability_zone       = "ap-northeast-2a" # 서울 a 영역
-  map_public_ip_on_launch = false  # 프라이빗
+resource "aws_subnet" "public2" {
+  vpc_id                  = aws_vpc.memo-vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "ap-northeast-2b"
+  map_public_ip_on_launch = true
   tags = {
-    Name = "${var.private_subnet_name}-a"
+    Name = "memo-vpc-public-b"
   }
 }
 
-resource "aws_subnet" "private2" { #프라이빗 subnet in ap-northeast-2b
-  vpc_id            = aws_vpc.vpc1.id
-  cidr_block        = "10.0.3.0/24" # 두 번째 프라이빗 서브넷 CIDR
-  availability_zone = "ap-northeast-2b" # 서울 b 영역
-  map_public_ip_on_launch = false # 프라이빗
+# Private Subnet 생성
+resource "aws_subnet" "private1" {
+  vpc_id                  = aws_vpc.memo-vpc.id
+  cidr_block              = "10.0.3.0/24"
+  availability_zone       = "ap-northeast-2a"
+  map_public_ip_on_launch = false
   tags = {
-    Name = "${var.private_subnet_name}-b"
+    Name = "memo-vpc-private-a"
   }
 }
 
-resource "aws_subnet" "private3" { #프라이빗 subnet in ap-northeast-2c
-  vpc_id            = aws_vpc.vpc1.id
-  cidr_block        = "10.0.4.0/24" # 세 번째 프라이빗 서브넷 CIDR
-  availability_zone = "ap-northeast-2c" # 서울 c 영역
-  map_public_ip_on_launch = false # 프라이빗
+resource "aws_subnet" "private2" {
+  vpc_id                  = aws_vpc.memo-vpc.id
+  cidr_block              = "10.0.4.0/24"
+  availability_zone       = "ap-northeast-2b"
+  map_public_ip_on_launch = false
   tags = {
-    Name = "${var.private_subnet_name}-c"
+    Name = "memo-vpc-private-b"
   }
 }
 
-resource "aws_subnet" "private4" { #프라이빗 subnet in ap-northeast-2d
-  vpc_id            = aws_vpc.vpc1.id
-  cidr_block        = "10.0.5.0/24" # 네 번째 프라이빗 서브넷 CIDR
-  availability_zone = "ap-northeast-2d" # 서울 d 영역
-  map_public_ip_on_launch = false # 프라이빗
+resource "aws_subnet" "private3" {
+  vpc_id                  = aws_vpc.memo-vpc.id
+  cidr_block              = "10.0.5.0/24"
+  availability_zone       = "ap-northeast-2c"
+  map_public_ip_on_launch = false
   tags = {
-    Name = "${var.private_subnet_name}-d"
+    Name = "memo-vpc-private-c"
   }
-} 
+}
+
+resource "aws_subnet" "private4" {
+  vpc_id                  = aws_vpc.memo-vpc.id
+  cidr_block              = "10.0.6.0/24"
+  availability_zone       = "ap-northeast-2d"
+  map_public_ip_on_launch = false
+  tags = {
+    Name = "memo-vpc-private-d"
+  }
+}
 
 # 인터넷 게이트웨이
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.vpc1.id
+  vpc_id = aws_vpc.memo-vpc.id
   tags = {
     Name = "${var.vpc_name}-igw"
   }
@@ -86,7 +98,7 @@ resource "aws_nat_gateway" "nat" {
 
 # 퍼블릭 라우트 테이블
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.vpc1.id
+  vpc_id = aws_vpc.memo-vpc.id
   tags = {
     Name = "${var.vpc_name}-public-rt"
   }
@@ -105,7 +117,7 @@ resource "aws_route_table_association" "public_assoc" {
 
 # 프라이빗 라우트 테이블
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.vpc1.id
+  vpc_id = aws_vpc.memo-vpc.id
   tags = {
     Name = "${var.vpc_name}-private-rt"
   }
@@ -148,6 +160,6 @@ resource "aws_vpc_dhcp_options" "dns" {
 }
 
 resource "aws_vpc_dhcp_options_association" "dns" {
-  vpc_id          = aws_vpc.vpc1.id
+  vpc_id          = aws_vpc.memo-vpc.id
   dhcp_options_id = aws_vpc_dhcp_options.dns.id
 }

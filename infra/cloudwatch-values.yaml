@@ -1,0 +1,25 @@
+aws:
+  region: ap-northeast-2
+
+serviceAccount:
+  create: false
+  name: cloudwatch-exporter
+
+# 여기 중요: config 전체를 string 처리
+config: |
+  {
+    "metrics": [
+      {
+        "aws_namespace": "AWS/RDS",
+        "aws_metric_name": "CPUUtilization",
+        "dimensions": ["DBInstanceIdentifier"],
+        "statistics": ["Average"]
+      },
+      {
+        "aws_namespace": "AWS/RDS",
+        "aws_metric_name": "FreeStorageSpace",
+        "dimensions": ["DBInstanceIdentifier"],
+        "statistics": ["Average"]
+      }
+    ]
+  }

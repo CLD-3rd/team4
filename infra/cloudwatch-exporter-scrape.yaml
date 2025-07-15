@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudwatch-exporter-scrape
+  namespace: monitoring
+data:
+  cloudwatch-exporter.yaml: |
+    - job_name: 'cloudwatch-exporter'
+      static_configs:
+        - targets: ['cloudwatch-exporter.monitoring.svc.cluster.local:9106']
