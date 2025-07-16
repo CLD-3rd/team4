@@ -19,7 +19,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-
+ 
     - name: Make application.properties
       run: | 
         mkdir -p ./src/main/resources
